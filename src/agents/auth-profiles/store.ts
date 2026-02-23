@@ -151,7 +151,7 @@ function mergeAuthProfileStores(
   }
   return {
     version: Math.max(base.version, override.version ?? base.version),
-    profiles: { ...base.profiles, ...override.profiles },
+    profiles: { ...override.profiles, ...base.profiles },
     order: mergeRecord(base.order, override.order),
     lastGood: mergeRecord(base.lastGood, override.lastGood),
     usageStats: mergeRecord(base.usageStats, override.usageStats),

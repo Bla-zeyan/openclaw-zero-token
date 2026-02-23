@@ -6,12 +6,14 @@ import {
   getChromeWebSocketUrl,
 } from "../browser/chrome.js";
 import { resolveBrowserConfig, resolveProfile } from "../browser/config.js";
+import { loadConfig } from "../config/io.js";
 
 export async function loginDeepseekWeb(params: {
   onProgress: (msg: string) => void;
   openUrl: (url: string) => Promise<boolean>;
 }) {
-  const browserConfig = resolveBrowserConfig(undefined);
+  const rootConfig = loadConfig();
+  const browserConfig = resolveBrowserConfig(rootConfig.browser, rootConfig);
   const profile = resolveProfile(browserConfig, browserConfig.defaultProfile);
   if (!profile) {
     throw new Error(`Could not resolve browser profile '${browserConfig.defaultProfile}'`);

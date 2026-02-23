@@ -9,6 +9,10 @@ export function resolveOpenClawAgentDir(): string {
   if (override) {
     return resolveUserPath(override);
   }
+  const stateDir = process.env.OPENCLAW_STATE_DIR?.trim();
+  if (stateDir) {
+    return path.join(stateDir, "agents", DEFAULT_AGENT_ID, "agent");
+  }
   const defaultAgentDir = path.join(resolveStateDir(), "agents", DEFAULT_AGENT_ID, "agent");
   return resolveUserPath(defaultAgentDir);
 }

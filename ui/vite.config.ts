@@ -31,6 +31,10 @@ export default defineConfig(() => {
       outDir: path.resolve(here, "../dist/control-ui"),
       emptyOutDir: true,
       sourcemap: true,
+      target: "es2022",
+    },
+    esbuild: {
+      target: "es2022",
     },
     server: {
       host: true,

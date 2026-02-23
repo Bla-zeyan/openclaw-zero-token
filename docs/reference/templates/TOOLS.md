@@ -1,47 +1,26 @@
----
-title: "TOOLS.md Template"
-summary: "Workspace template for TOOLS.md"
-read_when:
-  - Bootstrapping a workspace manually
----
+# TOOLS.md
 
-# TOOLS.md - Local Notes
+This file defines the tools and capabilities available to the agent.
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+## Purpose
 
-## What Goes Here
+Configure which tools the agent can use and how they should be used.
 
-Things like:
-
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
-
-## Examples
+## Example
 
 ```markdown
-### Cameras
+# Available Tools
 
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
+## Filesystem
+- Read files
+- Write files
+- List directories
 
-### SSH
+## Shell
+- Execute commands
+- Run scripts
 
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
+## Web
+- Fetch URLs
+- Search the web
 ```
-
-## Why Separate?
-
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
-
----
-
-Add whatever helps you do your job. This is your cheat sheet.

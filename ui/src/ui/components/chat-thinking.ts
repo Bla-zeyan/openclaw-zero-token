@@ -6,9 +6,9 @@ import { toSanitizedMarkdownHtml } from "../markdown.ts";
 
 @customElement("chat-thinking")
 export class ChatThinking extends LitElement {
-  @property({ type: String }) content = "";
-  @property({ type: Number }) duration?: number;
-  @state() private isExpanded = false;
+  @property({ type: String }) accessor content = "";
+  @property({ type: Number }) accessor duration: number | undefined = undefined;
+  @state() private accessor isExpanded = false;
 
   static styles = css`
     :host {
@@ -114,40 +114,20 @@ export class ChatThinking extends LitElement {
       <div class="thinking-box">
         <div class="thinking-header" @click=${this.toggle}>
           <span class="thinking-icon">${
-            icons.brain ||
-            icons.cpu ||
-            html`
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M9.5 2A1.5 1.5 0 0 0 8 3.5V6a2 2 0 0 1-2 2H3.5A1.5 1.5 0 0 0 2 9.5v5A1.5 1.5 0 0 0 3.5 16H6a2 2 0 0 1 2 2v2.5A1.5 1.5 0 0 0 9.5 22h5a1.5 1.5 0 0 0 1.5-1.5V18a2 2 0 0 1 2-2h2.5a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 20.5 8H18a2 2 0 0 1-2-2V3.5A1.5 1.5 0 0 0 14.5 2h-5z"
-                />
-              </svg>
-            `
+            icons.brain
           }</span>
           <span class="thinking-label">已思考${durationText}</span>
           <span class="thinking-chevron ${this.isExpanded ? "expanded" : ""}">
-            ${
-              icons.chevronDown ||
-              html`
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              `
-            }
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </span>
         </div>
         <div class="thinking-content ${this.isExpanded ? "expanded" : ""}">

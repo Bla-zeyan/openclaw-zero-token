@@ -74,6 +74,7 @@ apps/ios/*.mobileprovision
 
 # Local untracked files
 .local/
+.openclaw-state/
 docs/.local/
 IDENTITY.md
 USER.md
