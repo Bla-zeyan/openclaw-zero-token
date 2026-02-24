@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { lookupContextTokens } from "../agents/context.js";
-import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER, getDefaultProviderAndModel } from "../agents/defaults.js";
 import {
   parseModelRef,
   resolveConfiguredModelRef,
@@ -626,10 +626,11 @@ export function loadCombinedSessionStoreForGateway(cfg: OpenClawConfig): {
 }
 
 export function getSessionDefaults(cfg: OpenClawConfig): GatewaySessionsDefaults {
+  const dynamicDefaults = getDefaultProviderAndModel();
   const resolved = resolveConfiguredModelRef({
     cfg,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
+    defaultProvider: dynamicDefaults.provider,
+    defaultModel: dynamicDefaults.model,
   });
   const contextTokens =
     cfg.agents?.defaults?.contextTokens ??
@@ -649,12 +650,13 @@ export function resolveSessionModelRef(
     | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">,
   agentId?: string,
 ): { provider: string; model: string } {
+  const dynamicDefaults = getDefaultProviderAndModel();
   const resolved = agentId
     ? resolveDefaultModelForAgent({ cfg, agentId })
     : resolveConfiguredModelRef({
         cfg,
-        defaultProvider: DEFAULT_PROVIDER,
-        defaultModel: DEFAULT_MODEL,
+        defaultProvider: dynamicDefaults.provider,
+        defaultModel: dynamicDefaults.model,
       });
 
   // Prefer the last runtime model recorded on the session entry.
@@ -666,7 +668,7 @@ export function resolveSessionModelRef(
   if (runtimeModel) {
     const parsedRuntime = parseModelRef(
       runtimeModel,
-      runtimeProvider || provider || DEFAULT_PROVIDER,
+      runtimeProvider || provider || dynamicDefaults.provider,
     );
     if (parsedRuntime) {
       provider = parsedRuntime.provider;
@@ -682,7 +684,7 @@ export function resolveSessionModelRef(
   // then finally to configured defaults.
   const storedModelOverride = entry?.modelOverride?.trim();
   if (storedModelOverride) {
-    const overrideProvider = entry?.providerOverride?.trim() || provider || DEFAULT_PROVIDER;
+    const overrideProvider = entry?.providerOverride?.trim() || provider || dynamicDefaults.provider;
     const parsedOverride = parseModelRef(storedModelOverride, overrideProvider);
     if (parsedOverride) {
       provider = parsedOverride.provider;
@@ -786,8 +788,9 @@ export function listSessionsFromStore(params: {
       const parsedAgent = parseAgentSessionKey(key);
       const sessionAgentId = normalizeAgentId(parsedAgent?.agentId ?? resolveDefaultAgentId(cfg));
       const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
-      const modelProvider = resolvedModel.provider ?? DEFAULT_PROVIDER;
-      const model = resolvedModel.model ?? DEFAULT_MODEL;
+      const dynamicDefaults = getDefaultProviderAndModel();
+      const modelProvider = resolvedModel.provider ?? dynamicDefaults.provider;
+      const model = resolvedModel.model ?? dynamicDefaults.model;
       return {
         key,
         entry,

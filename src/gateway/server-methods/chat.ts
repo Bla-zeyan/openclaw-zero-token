@@ -900,6 +900,12 @@ export const chatHandlers: GatewayRequestHandlers = {
           images: parsedImages.length > 0 ? parsedImages : undefined,
           onAgentRunStart: (runId) => {
             agentRunStarted = true;
+            // Register chat run so agent events (delta/final) route correctly to web UI.
+            // The registry keys by runId (agent run id) for peek(evt.runId) in agent event handler.
+            context.addChatRun(runId, {
+              sessionKey: rawSessionKey,
+              clientRunId,
+            });
             const connId = typeof client?.connId === "string" ? client.connId : undefined;
             const wantsToolEvents = hasGatewayClientCap(
               client?.connect?.caps,

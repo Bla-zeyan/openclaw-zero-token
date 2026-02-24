@@ -1,6 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveAgentConfig, resolveAgentModelPrimary } from "./agent-scope.js";
-import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER, detectDefaultProvider, detectDefaultModel, getDefaultProviderAndModel } from "./defaults.js";
 import type { ModelCatalogEntry } from "./model-catalog.js";
 import { normalizeGoogleModelId } from "./models-config.providers.js";
 
@@ -309,10 +309,11 @@ export function resolveDefaultModelForAgent(params: {
           },
         }
       : params.cfg;
+  const dynamicDefaults = getDefaultProviderAndModel();
   return resolveConfiguredModelRef({
     cfg,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
+    defaultProvider: dynamicDefaults.provider,
+    defaultModel: dynamicDefaults.model,
   });
 }
 

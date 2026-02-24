@@ -1,5 +1,5 @@
 import { lookupContextTokens } from "../agents/context.js";
-import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS, getDefaultProviderAndModel } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import { loadConfig } from "../config/config.js";
 import {
@@ -98,12 +98,13 @@ export async function getStatusSummary(
   const mainSessionKey = resolveMainSessionKey(cfg);
   const queuedSystemEvents = peekSystemEvents(mainSessionKey);
 
+  const dynamicDefaults = getDefaultProviderAndModel();
   const resolved = resolveConfiguredModelRef({
     cfg,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
+    defaultProvider: dynamicDefaults.provider,
+    defaultModel: dynamicDefaults.model,
   });
-  const configModel = resolved.model ?? DEFAULT_MODEL;
+  const configModel = resolved.model ?? dynamicDefaults.model;
   const configContextTokens =
     cfg.agents?.defaults?.contextTokens ??
     lookupContextTokens(configModel) ??

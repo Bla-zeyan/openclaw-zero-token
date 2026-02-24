@@ -220,6 +220,12 @@ export async function runNodeMain(params = {}) {
     platform: params.platform ?? process.platform,
   };
 
+  const stateDir = path.join(deps.cwd, ".openclaw-state");
+  if (deps.fs.existsSync(stateDir)) {
+    deps.env.OPENCLAW_STATE_DIR = stateDir;
+    logRunner(`Using project-local state dir: ${stateDir}`, deps);
+  }
+
   deps.distRoot = path.join(deps.cwd, "dist");
   deps.distEntry = path.join(deps.distRoot, "/entry.js");
   deps.buildStampPath = path.join(deps.distRoot, ".buildstamp");

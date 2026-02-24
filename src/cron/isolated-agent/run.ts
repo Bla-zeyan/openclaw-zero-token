@@ -9,7 +9,7 @@ import { runCliAgent } from "../../agents/cli-runner.js";
 import { getCliSessionId, setCliSessionId } from "../../agents/cli-session.js";
 import { lookupContextTokens } from "../../agents/context.js";
 import { resolveCronStyleNow } from "../../agents/current-time.js";
-import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
+import { DEFAULT_CONTEXT_TOKENS, getDefaultProviderAndModel } from "../../agents/defaults.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
 import { runWithModelFallback } from "../../agents/model-fallback.js";
 import {
@@ -208,10 +208,11 @@ export async function runCronIsolatedAgentTurn(params: {
   });
   const workspaceDir = workspace.dir;
 
+  const dynamicDefaults = getDefaultProviderAndModel();
   const resolvedDefault = resolveConfiguredModelRef({
     cfg: cfgWithAgentDefaults,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
+    defaultProvider: dynamicDefaults.provider,
+    defaultModel: dynamicDefaults.model,
   });
   let provider = resolvedDefault.provider;
   let model = resolvedDefault.model;
@@ -228,7 +229,7 @@ export async function runCronIsolatedAgentTurn(params: {
   const hooksGmailModelRef = isGmailHook
     ? resolveHooksGmailModel({
         cfg: params.cfg,
-        defaultProvider: DEFAULT_PROVIDER,
+        defaultProvider: dynamicDefaults.provider,
       })
     : null;
   if (hooksGmailModelRef) {
