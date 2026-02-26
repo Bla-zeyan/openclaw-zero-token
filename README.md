@@ -56,7 +56,7 @@ OpenClaw Zero Token is a fork of [OpenClaw](https://github.com/openclaw/openclaw
 │  ┌─────────────────────────────────┼─────────────────────────────────────┐  │
 │  │                          Provider Layer                               │  │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │  │
-│  │  │ DeepSeek Web │  │ Doubao Proxy │  │   OpenAI     │  │ Anthropic   │  │  │
+│  │  │ DeepSeek Web │  │  Doubao Web  │  │   OpenAI     │  │ Anthropic   │  │  │
 │  │  │ (Zero Token) │  │ (Zero Token) │  │   (Token)    │  │  (Token)    │  │  │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
