@@ -27,62 +27,62 @@ export async function loginDoubaoWeb(params: {
   existingCdpPort?: number;
   useExistingChromeData?: boolean;
 }) {
-  const { 
-    useExistingChrome = false, 
+  const {
+    useExistingChrome = false,
     existingCdpPort = DEFAULT_CDP_PORT,
-    useExistingChromeData = false
+    useExistingChromeData = false,
   } = params;
 
-  let running: any;
-  
-  if (useExistingChrome) {
-    const cdpUrl = `http://127.0.0.1:${existingCdpPort}`;
-    params.onProgress(`Connecting to existing Chrome on ${cdpUrl}...`);
-    
+  const rootConfig = loadConfig();
+  const browserConfig = resolveBrowserConfig(rootConfig.browser, rootConfig);
+  const profile = resolveProfile(browserConfig, browserConfig.defaultProfile);
+  if (!profile) {
+    throw new Error(`Could not resolve browser profile '${browserConfig.defaultProfile}'`);
+  }
+
+  const useAttach = browserConfig.attachOnly || useExistingChrome;
+
+  let running: Awaited<ReturnType<typeof launchOpenClawChrome>> | { cdpPort: number };
+  let didLaunch = false;
+
+  if (useAttach) {
+    const cdpUrl = browserConfig.attachOnly ? profile.cdpUrl : `http://127.0.0.1:${existingCdpPort}`;
+    params.onProgress(`Connecting to existing Chrome at ${cdpUrl}...`);
+
     const isReachable = await isChromeReachable(cdpUrl, 1000);
     if (!isReachable) {
       throw new Error(
-        `Cannot connect to Chrome on port ${existingCdpPort}. ` +
-        `Please start Chrome with: /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=${existingCdpPort}`
+        `Cannot connect to Chrome at ${cdpUrl}. ` +
+          "Make sure Chrome is running in debug mode (./start-chrome-debug.sh)"
       );
     }
-    
-    running = { cdpPort: existingCdpPort };
-  } else if (useExistingChromeData) {
-    // 使用现有Chrome的用户数据
-    const rootConfig = loadConfig();
-    const browserConfig = resolveBrowserConfig(rootConfig.browser, rootConfig);
-    const profile = resolveProfile(browserConfig, browserConfig.defaultProfile);
-    if (!profile) {
-      throw new Error(`Could not resolve browser profile '${browserConfig.defaultProfile}'`);
-    }
 
+    running = { cdpPort: browserConfig.attachOnly ? profile.cdpPort : existingCdpPort };
+  } else if (useExistingChromeData) {
     params.onProgress("Launching Chrome with existing user data...");
-    
-    // 修改用户数据目录为现有Chrome的目录
-    const existingUserDataDir = path.join(os.homedir(), "Library/Application Support/Google/Chrome");
-    
-    // 临时修改配置以使用现有用户数据
+
+    const existingUserDataDir = path.join(
+      os.homedir(),
+      "Library/Application Support/Google/Chrome",
+    );
+
     const modifiedConfig = {
       ...browserConfig,
-      userDataDir: existingUserDataDir
+      userDataDir: existingUserDataDir,
     };
-    
-    running = await launchOpenClawChrome(modifiedConfig, profile);
-  } else {
-    const rootConfig = loadConfig();
-    const browserConfig = resolveBrowserConfig(rootConfig.browser, rootConfig);
-    const profile = resolveProfile(browserConfig, browserConfig.defaultProfile);
-    if (!profile) {
-      throw new Error(`Could not resolve browser profile '${browserConfig.defaultProfile}'`);
-    }
 
+    running = await launchOpenClawChrome(modifiedConfig, profile);
+    didLaunch = true;
+  } else {
     params.onProgress("Launching browser...");
     running = await launchOpenClawChrome(browserConfig, profile);
+    didLaunch = true;
   }
 
   try {
-    const cdpUrl = `http://127.0.0.1:${running.cdpPort}`;
+    const cdpUrl = useAttach
+      ? (browserConfig.attachOnly ? profile.cdpUrl : `http://127.0.0.1:${existingCdpPort}`)
+      : `http://127.0.0.1:${running.cdpPort}`;
     let wsUrl: string | null = null;
 
     params.onProgress("Waiting for browser debugger...");
@@ -192,7 +192,7 @@ export async function loginDoubaoWeb(params: {
       }, 2000);
     });
   } finally {
-    if (!useExistingChrome && running) {
+    if (didLaunch && running && "proc" in running) {
       await stopOpenClawChrome(running);
     }
   }

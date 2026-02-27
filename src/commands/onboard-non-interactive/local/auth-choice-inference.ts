@@ -30,6 +30,7 @@ type AuthChoiceFlagOptions = Pick<
   | "qianfanApiKey"
   | "siliconflowGlobalApiKey"
   | "siliconflowCnApiKey"
+  | "manusApiKey"
   | "customBaseUrl"
   | "customModelId"
   | "customApiKey"

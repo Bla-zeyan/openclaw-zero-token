@@ -26,6 +26,7 @@ import {
   applyHuggingfaceConfig,
   applyVercelAiGatewayConfig,
   applyLitellmConfig,
+  applyManusApiConfig,
   applyXaiConfig,
   applyXiaomiConfig,
   applyZaiConfig,
@@ -39,6 +40,7 @@ import {
   setLitellmApiKey,
   setMinimaxApiKey,
   setMoonshotApiKey,
+  setManusApiKey,
   setOpencodeZenApiKey,
   setOpenrouterApiKey,
   setSyntheticApiKey,
@@ -603,6 +605,29 @@ export async function applyNonInteractiveAuthChoice(params: {
       mode: "api_key",
     });
     return applyVeniceConfig(nextConfig);
+  }
+
+  if (authChoice === "manus-api-key") {
+    const resolved = await resolveNonInteractiveApiKey({
+      provider: "manus-api",
+      cfg: baseConfig,
+      flagValue: opts.manusApiKey,
+      flagName: "--manus-api-key",
+      envVar: "MANUS_API_KEY",
+      runtime,
+    });
+    if (!resolved) {
+      return null;
+    }
+    if (resolved.source !== "profile") {
+      await setManusApiKey(resolved.key);
+    }
+    nextConfig = applyAuthProfileConfig(nextConfig, {
+      profileId: "manus-api:default",
+      provider: "manus-api",
+      mode: "api_key",
+    });
+    return applyManusApiConfig(nextConfig);
   }
 
   if (

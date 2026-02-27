@@ -1,6 +1,7 @@
 import { chromium } from "playwright-core";
 import { getHeadersWithAuth } from "../browser/cdp.helpers.js";
 import {
+  killExistingChromeOnPort,
   launchOpenClawChrome,
   stopOpenClawChrome,
   getChromeWebSocketUrl,
@@ -19,11 +20,26 @@ export async function loginDeepseekWeb(params: {
     throw new Error(`Could not resolve browser profile '${browserConfig.defaultProfile}'`);
   }
 
-  params.onProgress("Launching browser...");
-  const running = await launchOpenClawChrome(browserConfig, profile);
+  type RunningLike = { cdpPort: number; proc?: unknown };
+  let running: RunningLike | null = null;
+  let didLaunch = false;
+
+  if (browserConfig.attachOnly) {
+    // Attach to existing Chrome (e.g. from start-chrome-debug.sh) - same browser, same user-data, reuse logged-in session
+    params.onProgress("Connecting to existing Chrome (attach mode)...");
+    running = { cdpPort: profile.cdpPort };
+    // Do NOT kill: user may have already logged in via start-chrome-debug.sh
+  } else {
+    // Launch our own Chrome: close any existing on this port first to avoid port conflict
+    await killExistingChromeOnPort(profile.cdpPort, params.onProgress);
+    params.onProgress("Launching browser...");
+    running = await launchOpenClawChrome(browserConfig, profile);
+    didLaunch = true;
+  }
 
   try {
-    const cdpUrl = `http://127.0.0.1:${running.cdpPort}`;
+    const cdpUrl =
+      browserConfig.attachOnly ? profile.cdpUrl : `http://127.0.0.1:${running.cdpPort}`;
     let wsUrl: string | null = null;
 
     // Retry finding the WS URL as Chrome might take a second to populate it
@@ -42,7 +58,7 @@ export async function loginDeepseekWeb(params: {
 
     params.onProgress("Connecting to browser...");
     const browser = await chromium.connectOverCDP(wsUrl, {
-      wsHeaders: getHeadersWithAuth(wsUrl),
+      headers: getHeadersWithAuth(wsUrl),
     });
     const context = browser.contexts()[0];
     const page = context.pages()[0] || (await context.newPage());
@@ -50,20 +66,25 @@ export async function loginDeepseekWeb(params: {
     await page.goto("https://chat.deepseek.com");
     const userAgent = await page.evaluate(() => navigator.userAgent);
 
-    params.onProgress("Please login to DeepSeek in the opened browser window...");
+    params.onProgress(
+      "Please login to DeepSeek in the opened browser window. The session token will be captured automatically once you are logged in.",
+    );
 
     return await new Promise<{ cookie: string; bearer: string; userAgent: string }>(
       (resolve, reject) => {
         let capturedBearer: string | undefined;
         let resolved = false;
+        let checkInterval: ReturnType<typeof setInterval> | undefined;
 
         const timeout = setTimeout(() => {
           if (!resolved) {
+            if (checkInterval) clearInterval(checkInterval);
             reject(new Error("Login timed out (5 minutes)."));
           }
         }, 300000);
 
         const tryResolve = async () => {
+          // Bearer is required for DeepSeek API (create_pow_challenge, chat). Do not resolve without it.
           if (!capturedBearer || resolved) {
             return;
           }
@@ -75,12 +96,8 @@ export async function loginDeepseekWeb(params: {
               "https://deepseek.com",
             ]);
             if (cookies.length === 0) {
-              console.log(`[DeepSeek Research] No cookies found in context yet.`);
               return;
             }
-
-            const cookieNames = cookies.map((c) => c.name);
-            console.log(`[DeepSeek Research] Found cookies in context: ${cookieNames.join(", ")}`);
 
             const cookieString = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
 
@@ -93,21 +110,18 @@ export async function loginDeepseekWeb(params: {
             if (hasDeviceId || hasSessionId || hasSessionInfo || cookies.length > 3) {
               resolved = true;
               clearTimeout(timeout);
+              if (checkInterval) clearInterval(checkInterval);
               console.log(
-                `[Deepseek Research] All credentials captured via context! (Has d_id: ${hasDeviceId}, Has ds_session_id: ${hasSessionId})`,
+                `[DeepSeek] Credentials captured (d_id: ${hasDeviceId}, ds_session_id: ${hasSessionId})`,
               );
               resolve({
                 cookie: cookieString,
                 bearer: capturedBearer,
                 userAgent,
               });
-            } else {
-              console.log(
-                `[DeepSeek Research] Found some cookies, but missing key identifiers (d_id). Continuing to wait...`,
-              );
             }
           } catch (e: unknown) {
-            console.error(`[DeepSeek Research] Failed to fetch cookies from context: ${String(e)}`);
+            console.error(`[DeepSeek] Failed to fetch cookies: ${String(e)}`);
           }
         };
 
@@ -135,15 +149,19 @@ export async function loginDeepseekWeb(params: {
 
         page.on("response", async (response) => {
           const url = response.url();
-          if (url.includes("/api/v0/") && response.ok()) {
+          // users/current returns token in data.biz_data.token - same as openclawWeComzh flow
+          if (url.includes("/api/v0/users/current") && response.ok()) {
             try {
-              const contentType = response.headers()["content-type"];
-              if (contentType?.includes("application/json")) {
-                const body = (await response.json()) as Record<string, unknown>;
-                console.log(
-                  `[DeepSeek Research] Response from ${url}:`,
-                  JSON.stringify(body).slice(0, 200) + "...",
-                );
+              const body = (await response.json()) as Record<string, unknown>;
+              const bizData = body?.data as Record<string, unknown> | undefined;
+              const tokenFromResponse =
+                (bizData?.biz_data as Record<string, unknown> | undefined)?.token;
+              if (typeof tokenFromResponse === "string" && tokenFromResponse.length > 0) {
+                if (!capturedBearer) {
+                  console.log(`[DeepSeek] Captured token from users/current response`);
+                  capturedBearer = tokenFromResponse;
+                }
+                await tryResolve();
               }
             } catch {
               // ignore
@@ -152,11 +170,17 @@ export async function loginDeepseekWeb(params: {
         });
 
         page.on("close", () => {
+          if (checkInterval) clearInterval(checkInterval);
           reject(new Error("Browser window closed before login was captured."));
         });
+
+        // Periodic check: cookies may already exist (user logged in), even without new API requests
+        checkInterval = setInterval(tryResolve, 2000);
       },
     );
   } finally {
-    await stopOpenClawChrome(running);
+    if (didLaunch && running && "proc" in running) {
+      await stopOpenClawChrome(running);
+    }
   }
 }

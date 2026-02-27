@@ -317,6 +317,7 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
     vllm: "VLLM_API_KEY",
     siliconflow: "SILICONFLOW_API_KEY",
     "siliconflow-cn": "SILICONFLOW_CN_API_KEY",
+    "manus-api": "MANUS_API_KEY",
     "deepseek-web": "DEEPSEEK_WEB_COOKIE",
     "doubao-web": "DOUBAO_WEB_COOKIE",
     "claude-web": "CLAUDE_WEB_COOKIE",

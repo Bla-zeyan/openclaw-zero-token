@@ -23,6 +23,7 @@ type OnboardProviderAuthOptionKey = keyof Pick<
   | "qianfanApiKey"
   | "siliconflowGlobalApiKey"
   | "siliconflowCnApiKey"
+  | "manusApiKey"
 >;
 
 export type OnboardProviderAuthFlag = {
@@ -181,5 +182,12 @@ export const ONBOARD_PROVIDER_AUTH_FLAGS: ReadonlyArray<OnboardProviderAuthFlag>
     cliFlag: "--siliconflow-cn-api-key",
     cliOption: "--siliconflow-cn-api-key <key>",
     description: "SiliconFlow China API key (CN)",
+  },
+  {
+    optionKey: "manusApiKey",
+    authChoice: "manus-api-key",
+    cliFlag: "--manus-api-key",
+    cliOption: "--manus-api-key <key>",
+    description: "Manus API key (Credit-based, free tier)",
   },
 ];

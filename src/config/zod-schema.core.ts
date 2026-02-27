@@ -22,6 +22,7 @@ export const ModelApiSchema = z.union([
   z.literal("grok-web"),
   z.literal("z-web"),
   z.literal("manus-web"),
+  z.literal("manus-api"),
 ]);
 
 export const ModelCompatSchema = z

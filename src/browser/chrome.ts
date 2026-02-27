@@ -1,4 +1,8 @@
-import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import {
+  type ChildProcessWithoutNullStreams,
+  execSync,
+  spawn,
+} from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -70,6 +74,48 @@ function cdpUrlForPort(cdpPort: number) {
 export async function isChromeReachable(cdpUrl: string, timeoutMs = 500): Promise<boolean> {
   const version = await fetchChromeVersion(cdpUrl, timeoutMs);
   return Boolean(version);
+}
+
+/**
+ * Kill an existing Chrome process using the given CDP port (e.g. from start-chrome-debug.sh).
+ * Used before DeepSeek auth to ensure a clean browser state.
+ * Only works on darwin/linux; no-op on Windows.
+ */
+export async function killExistingChromeOnPort(
+  cdpPort: number,
+  onProgress?: (msg: string) => void,
+): Promise<boolean> {
+  if (process.platform === "win32") {
+    return false;
+  }
+  const cdpUrl = cdpUrlForPort(cdpPort);
+  if (!(await isChromeReachable(cdpUrl, 300))) {
+    return false;
+  }
+  const progress = onProgress ?? (() => {});
+  progress("Detected existing browser, closing it first...");
+  try {
+    // Match Chrome with --remote-debugging-port=N (same pattern as start-chrome-debug.sh)
+    execSync(`pkill -f "remote-debugging-port=${cdpPort}" 2>/dev/null || true`, {
+      stdio: "ignore",
+    });
+    await new Promise((r) => setTimeout(r, 2000));
+    try {
+      execSync(`pkill -9 -f "remote-debugging-port=${cdpPort}" 2>/dev/null || true`, {
+        stdio: "ignore",
+      });
+      await new Promise((r) => setTimeout(r, 1000));
+    } catch {
+      // ignore
+    }
+    if (!(await isChromeReachable(cdpUrl, 300))) {
+      log.info(`[DeepSeek] Closed existing Chrome on port ${cdpPort}`);
+      return true;
+    }
+  } catch {
+    // pkill may exit 1 when no process matched
+  }
+  return false;
 }
 
 type ChromeVersion = {

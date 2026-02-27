@@ -6,9 +6,12 @@ import {
 import {
   buildDeepseekWebProvider,
   buildDoubaoWebProvider,
+  buildManusApiProvider,
   buildQianfanProvider,
+  buildQwenWebProvider,
   buildXiaomiProvider,
   DEEPSEEK_WEB_DEFAULT_MODEL_ID,
+  MANUS_API_DEFAULT_MODEL_REF,
   QIANFAN_DEFAULT_MODEL_ID,
   XIAOMI_DEFAULT_MODEL_ID,
 } from "../agents/models-config.providers.js";
@@ -410,6 +413,30 @@ export function applyXaiConfig(cfg: OpenClawConfig): OpenClawConfig {
   return applyAgentDefaultModelPrimary(next, XAI_DEFAULT_MODEL_REF);
 }
 
+const MANUS_API_BASE_URL = "https://api.manus.ai";
+
+export function applyManusApiProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const provider = buildManusApiProvider();
+  const models = { ...cfg.agents?.defaults?.models };
+  models[MANUS_API_DEFAULT_MODEL_REF] = {
+    ...models[MANUS_API_DEFAULT_MODEL_REF],
+    alias: models[MANUS_API_DEFAULT_MODEL_REF]?.alias ?? "Manus 1.6",
+  };
+
+  return applyProviderConfigWithModelCatalog(cfg, {
+    agentModels: models,
+    providerId: "manus-api",
+    api: "manus-api",
+    baseUrl: MANUS_API_BASE_URL,
+    catalogModels: provider.models ?? [],
+  });
+}
+
+export function applyManusApiConfig(cfg: OpenClawConfig): OpenClawConfig {
+  const next = applyManusApiProviderConfig(cfg);
+  return applyAgentDefaultModelPrimary(next, MANUS_API_DEFAULT_MODEL_REF);
+}
+
 export function applyAuthProfileConfig(
   cfg: OpenClawConfig,
   params: {
@@ -616,5 +643,30 @@ export async function applyClaudeWebProviderConfig(cfg: OpenClawConfig): Promise
 export async function applyClaudeWebConfig(cfg: OpenClawConfig): Promise<OpenClawConfig> {
   const next = await applyClaudeWebProviderConfig(cfg);
   return applyAgentDefaultModelPrimary(next, CLAUDE_WEB_DEFAULT_MODEL_REF);
+}
+
+const QWEN_WEB_DEFAULT_MODEL_ID = "qwen3.5-plus";
+const QWEN_WEB_DEFAULT_MODEL_REF = `qwen-web/${QWEN_WEB_DEFAULT_MODEL_ID}`;
+
+export async function applyQwenWebProviderConfig(cfg: OpenClawConfig): Promise<OpenClawConfig> {
+  const models = { ...cfg.agents?.defaults?.models };
+  models[QWEN_WEB_DEFAULT_MODEL_REF] = {
+    ...models[QWEN_WEB_DEFAULT_MODEL_REF],
+    alias: models[QWEN_WEB_DEFAULT_MODEL_REF]?.alias ?? "Qwen Browser",
+  };
+  const defaultProvider = await buildQwenWebProvider();
+  return applyProviderConfigWithDefaultModels(cfg, {
+    agentModels: models,
+    providerId: "qwen-web",
+    api: "qwen-web",
+    baseUrl: defaultProvider.baseUrl,
+    defaultModels: defaultProvider.models ?? [],
+    defaultModelId: QWEN_WEB_DEFAULT_MODEL_ID,
+  });
+}
+
+export async function applyQwenWebConfig(cfg: OpenClawConfig): Promise<OpenClawConfig> {
+  const next = await applyQwenWebProviderConfig(cfg);
+  return applyAgentDefaultModelPrimary(next, QWEN_WEB_DEFAULT_MODEL_REF);
 }
 

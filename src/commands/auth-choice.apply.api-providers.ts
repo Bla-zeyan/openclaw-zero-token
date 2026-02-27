@@ -129,6 +129,8 @@ export async function applyAuthChoiceApiProviders(
       authChoice = "siliconflow-global-api-key";
     } else if (params.opts.tokenProvider === "siliconflow-cn") {
       authChoice = "siliconflow-cn-api-key";
+    } else if (params.opts.tokenProvider === "manus-api") {
+      authChoice = "manus-api-key";
     }
   }
 
