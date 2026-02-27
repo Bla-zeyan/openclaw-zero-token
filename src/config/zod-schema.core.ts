@@ -14,6 +14,14 @@ export const ModelApiSchema = z.union([
   z.literal("deepseek-web"),
   z.literal("doubao-web"),
   z.literal("claude-web"),
+  z.literal("chatgpt-web"),
+  z.literal("qwen-web"),
+  z.literal("yuanbao-web"),
+  z.literal("kimi-web"),
+  z.literal("gemini-web"),
+  z.literal("grok-web"),
+  z.literal("z-web"),
+  z.literal("manus-web"),
 ]);
 
 export const ModelCompatSchema = z
