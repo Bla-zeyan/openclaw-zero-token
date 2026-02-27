@@ -40,6 +40,26 @@ OpenClaw Zero Token is a fork of [OpenClaw](https://github.com/openclaw/openclaw
 
 > **Note:** All web-based providers use browser automation (Playwright) for authentication and API access. Platforms marked **Tested** have been verified to work.
 
+### Setup Steps (6 Steps)
+
+```bash
+# 1. Build
+npm install && npm run build
+
+# 2. Open browser debug
+./start-chrome-debug.sh
+
+# 3. Login to platforms (Qwen, Kimi, Claude, etc. — exclude DeepSeek)
+# 4. Configure onboard
+./onboard.sh
+
+# 5. Login DeepSeek (Chrome + onboard select deepseek-web)
+# 6. Start server
+./server.sh start
+```
+
+See **START_HERE.md** and **TEST_STEPS.md** for details.
+
 ---
 
 ## System Architecture
@@ -152,25 +172,9 @@ Doubao API Response (SSE Stream)
 - ✅ **Simple Authentication**: Only needs sessionid and ttwid
 - ✅ **Streaming Support**: Real-time response streaming
 
-### Quick Start
+### Quick Start (Doubao)
 
-```bash
-# Step 1: Start Chrome in debug mode
-./start-chrome-debug.sh
-
-# Step 2: Configure Doubao (in another terminal)
-./onboard.sh
-# Select: Doubao -> Automated Login
-
-# Step 3: Start Gateway
-./server.sh start
-
-# Step 4: Test
-./test-doubao.sh "你好"
-
-# Or open Web UI
-open http://127.0.0.1:3001
-```
+Same 6-step flow: build → Chrome debug → login platforms → onboard → DeepSeek auth → server. For Doubao, select **doubao-web** in `./onboard.sh`.
 
 ### Available Models
 

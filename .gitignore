@@ -72,6 +72,9 @@ apps/ios/*.dSYM.zip
 # provisioning profiles (local)
 apps/ios/*.mobileprovision
 
+# Test scripts and folder (local use, not for distribution)
+test/
+
 # Local untracked files
 .local/
 .openclaw-state/

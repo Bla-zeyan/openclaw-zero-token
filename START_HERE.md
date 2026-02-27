@@ -17,28 +17,26 @@
 
 ---
 
-## ⚡ 快速测试（6 步）
+## ⚡ 配置步骤（6 步）
 
 **首次使用？先阅读 INSTALLATION.md 完成安装！**
 
 ```bash
-# 0. 安装依赖并编译（首次使用必须）
+# 1. 编译
 npm install
 npm run build
 
-# 1. 关闭系统 Gateway
-openclaw gateway stop
-
-# 2. 启动 Chrome 调试
+# 2. 打开浏览器调试
 ./start-chrome-debug.sh
 
-# 3. 登录各平台（在 Chrome 调试浏览器中）
-# 优先登录 DeepSeek、千问、Kimi（已测试）
+# 3. 登录各大网站（千问、Kimi 等，不含 DeepSeek，在 Chrome 中登录）
 
-# 4. 配置认证
+# 4. 配置 onboard
 ./onboard.sh
 
-# 5. 启动本地 Gateway
+# 5. 登录 DeepSeek（在 onboard 中选择 deepseek-web 完成认证）
+
+# 6. 启动 server
 ./server.sh start
 ```
 
@@ -48,22 +46,8 @@ openclaw gateway stop
 
 ## 📋 需要登录的平台
 
-在 Chrome 调试浏览器中登录以下平台：
-
-**✅ 已测试（推荐优先）**  
-1. https://chat.deepseek.com（DeepSeek）  
-2. https://chat.qwen.ai（千问）  
-3. https://kimi.moonshot.cn（Kimi）
-
-**其他（未测试）**  
-4. https://chatgpt.com  
-5. https://claude.ai  
-6. https://www.doubao.com/chat/  
-7. https://yuanbao.tencent.com/chat/na  
-8. https://gemini.google.com/app  
-9. https://grok.com  
-10. https://chat.z.ai  
-11. https://manus.im/app
+**步骤 3**（不含 DeepSeek）：千问、Kimi、Claude、Doubao、ChatGPT 等  
+**步骤 5**（仅 DeepSeek）：https://chat.deepseek.com
 
 ---
 
@@ -101,28 +85,24 @@ openclaw gateway stop
 
 ### 🚀 Start Here
 
-#### Quick Test (6 Steps)
+#### Quick Setup (6 Steps)
 
 **First time? Read INSTALLATION.md first!**
 
 ```bash
-# 0. Install and build (first time only)
+# 1. Build
 npm install
 npm run build
 
-# 1. Stop system Gateway
-openclaw gateway stop
-
-# 2. Start Chrome debug mode
+# 2. Open browser debug mode
 ./start-chrome-debug.sh
 
-# 3. Login to platforms (in Chrome debug browser)
-# Prioritize DeepSeek, Qwen, Kimi (tested)
-
-# 4. Configure authentication
+# 3. Login to platforms (Qwen, Kimi, Claude, etc. — exclude DeepSeek)
+# 4. Configure onboard
 ./onboard.sh
 
-# 5. Start local Gateway
+# 5. Login DeepSeek (Chrome + onboard deepseek-web)
+# 6. Start server
 ./server.sh start
 ```
 
