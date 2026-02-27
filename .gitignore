@@ -77,10 +77,15 @@ apps/ios/*.mobileprovision
 .openclaw-state/
 .kiro/
 docs/.local/
-IDENTITY.md
-USER.md
 .tgz
 .idea
+
+# User-specific config files (but allow templates)
+IDENTITY.md
+USER.md
+# Exception: allow template files
+!docs/reference/templates/IDENTITY.md
+!docs/reference/templates/USER.md
 
 # Gateway PID file
 .gateway.pid
