@@ -216,3 +216,54 @@ npm list --depth=0
 ## 🎉 安装成功！
 
 现在你可以开始测试了。继续阅读 **START_HERE.md** 开始测试流程。
+
+
+---
+
+## English Version
+
+### Installation Guide
+
+#### Prerequisites
+
+1. **Node.js** (v18 or higher)
+2. **npm** (8.x or higher)
+3. **Google Chrome** (latest version)
+
+#### Installation Steps
+
+```bash
+# Step 1: Clone or download code
+git clone <repository-url>
+cd openclaw-zero-token
+
+# Step 2: Install dependencies
+npm install
+
+# Step 3: Build the code
+npm run build
+
+# Step 4: Verify installation
+ls dist/index.mjs  # Should see the file
+```
+
+#### Troubleshooting
+
+**Q: npm install fails**
+```bash
+# Use mirror (if in China)
+npm config set registry https://registry.npmmirror.com
+npm install
+```
+
+**Q: npm run build fails**
+```bash
+# Check Node.js version
+node --version  # Must be v18+
+```
+
+#### Next Steps
+
+After installation, read:
+1. **START_HERE.md** - Quick start guide
+2. **TEST_STEPS.md** - Detailed testing steps

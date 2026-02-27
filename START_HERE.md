@@ -90,3 +90,65 @@ openclaw gateway stop
 ---
 
 开始测试吧！🎉
+
+
+---
+
+## English Version
+
+### 🚀 Start Here
+
+#### Quick Test (6 Steps)
+
+**First time? Read INSTALLATION.md first!**
+
+```bash
+# 0. Install and build (first time only)
+npm install
+npm run build
+
+# 1. Stop system Gateway
+openclaw gateway stop
+
+# 2. Start Chrome debug mode
+./start-chrome-debug.sh
+
+# 3. Login to platforms (in Chrome debug browser)
+# Visit and login to 8 new platforms
+
+# 4. Configure authentication
+./onboard.sh
+
+# 5. Start local Gateway
+./server.sh start
+```
+
+Then visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c803355823
+
+#### Platforms to Login
+
+Login to these platforms in Chrome debug browser:
+
+1. https://chatgpt.com
+2. https://chat.qwen.ai
+3. https://yuanbao.tencent.com/chat/na
+4. https://kimi.moonshot.cn
+5. https://gemini.google.com/app
+6. https://grok.com
+7. https://chat.z.ai
+8. https://manus.im/app
+
+**Note**: Claude and Doubao are already logged in.
+
+#### Expected Results
+
+After testing, you will have:
+
+- ✅ 10 available Web platforms
+- ✅ 23 selectable AI models
+- ✅ Completely free AI conversation service
+- ✅ Unified browser approach
+
+#### Need Help?
+
+See **TEST_STEPS.md** for detailed testing steps and troubleshooting.

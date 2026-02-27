@@ -353,3 +353,132 @@ cat .openclaw-state/agents/main/agent/auth-profiles.json | jq '.profiles | keys'
 ---
 
 祝测试顺利！🚀
+
+
+---
+
+## English Version
+
+### Complete Testing Steps
+
+#### Step 0: Install and Build (First Time Required)
+
+```bash
+npm install
+npm run build
+```
+
+Verify: `ls dist/index.mjs`
+
+#### Step 1: Stop System Gateway
+
+```bash
+openclaw gateway stop
+```
+
+#### Step 2: Start Chrome Debug Browser
+
+```bash
+./start-chrome-debug.sh
+```
+
+#### Step 3: Login to All Platforms
+
+Login to these 8 platforms in Chrome debug browser:
+
+1. **ChatGPT**: https://chatgpt.com
+2. **Qwen**: https://chat.qwen.ai
+3. **Yuanbao**: https://yuanbao.tencent.com/chat/na
+4. **Kimi**: https://kimi.moonshot.cn
+5. **Gemini**: https://gemini.google.com/app
+6. **Grok**: https://grok.com
+7. **Z**: https://chat.z.ai
+8. **Manus**: https://manus.im/app
+
+**Note**: Claude and Doubao are already logged in.
+
+#### Step 4: Run Onboard Configuration
+
+```bash
+./onboard.sh
+```
+
+Follow prompts to configure authentication for each platform.
+
+#### Step 5: Start Local Gateway
+
+```bash
+./server.sh start
+```
+
+#### Step 6: Open Web UI
+
+Visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c803355823
+
+#### Step 7: View All Models
+
+In Web UI chat box, type:
+```
+/models
+```
+
+Expected: Should see 23 models
+
+#### Step 8: Test Conversation
+
+1. Select a model (e.g., `chatgpt-web/gpt-4`)
+2. Send test message: "Hello, please introduce yourself"
+3. Check if you receive a response
+
+#### Troubleshooting
+
+**Port conflict**: 
+```bash
+lsof -i :3001
+kill <PID>
+```
+
+**Chrome not started**:
+```bash
+ps aux | grep "chrome.*9222"
+./start-chrome-debug.sh
+```
+
+**Authentication failed**:
+1. Ensure logged in Chrome debug browser
+2. Re-run `./onboard.sh`
+3. Check cookie is correct
+
+#### Quick Commands
+
+```bash
+# First time: install and build
+npm install && npm run build
+
+# Stop system Gateway
+openclaw gateway stop
+
+# Start Chrome debug
+./start-chrome-debug.sh
+
+# Configure auth
+./onboard.sh
+
+# Start Gateway
+./server.sh start
+
+# Check status
+./server.sh status
+
+# View logs
+tail -f /tmp/openclaw-gateway.log
+```
+
+#### Test Complete Checklist
+
+- ✅ All 10 platforms visible in `/models`
+- ✅ Each platform can send and receive messages
+- ✅ Streaming response works (character by character)
+- ✅ No authentication or API errors
+
+Good luck with testing! 🚀
