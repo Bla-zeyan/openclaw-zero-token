@@ -1,6 +1,6 @@
 # OpenClaw Zero Token
 
-**Use AI Models Without API Tokens** - Access DeepSeek, Doubao, Claude, ChatGPT and more for free via browser login authentication.
+**Zero API Token Cost** — Free access to AI models via browser-based authentication (DeepSeek, Qwen, Kimi, Claude, Doubao, ChatGPT, and more).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -42,61 +42,184 @@ OpenClaw Zero Token is a fork of [OpenClaw](https://github.com/openclaw/openclaw
 
 ---
 
-### CLI Mode
+## System Architecture
 
-```bash
-# Interactive terminal with Claude
-node openclaw.mjs tui
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              OpenClaw Zero Token                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │   Web UI    │    │  CLI/TUI    │    │   Gateway   │    │  Channels   │  │
+│  │  (Lit 3.x)  │    │             │    │  (Port API) │    │ (Telegram…) │  │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘    └──────┬──────┘  │
+│         │                  │                  │                  │          │
+│         └──────────────────┴──────────────────┴──────────────────┘          │
+│                                    │                                         │
+│                           ┌────────▼────────┐                               │
+│                           │   Agent Core    │                               │
+│                           │  (PI-AI Engine) │                               │
+│                           └────────┬────────┘                               │
+│                                    │                                         │
+│  ┌─────────────────────────────────┼─────────────────────────────────────┐  │
+│  │                          Provider Layer                               │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │  │
+│  │  │ DeepSeek Web │  │  Doubao Web  │  │   OpenAI     │  │ Anthropic   │  │  │
+│  │  │ (Zero Token) │  │ (Zero Token) │  │   (Token)    │  │  (Token)    │  │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Configuration
+## How It Works
 
-### openclaw.json
+### Zero Token Authentication Flow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     DeepSeek Web Authentication Flow                        │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Launch Browser                                                          │
+│     ┌─────────────┐                                                        │
+│     │ openclaw    │ ──start──▶ Chrome (CDP Port: 18892)                    │
+│     │ gateway     │             with user data directory                   │
+│     └─────────────┘                                                        │
+│                                                                             │
+│  2. User Login                                                              │
+│     ┌─────────────┐                                                        │
+│     │ User logs in│ ──visit──▶ https://chat.deepseek.com                   │
+│     │  browser    │             scan QR / password login                    │
+│     └─────────────┘                                                        │
+│                                                                             │
+│  3. Capture Credentials                                                     │
+│     ┌─────────────┐                                                        │
+│     │ Playwright  │ ──listen──▶ Network requests                           │
+│     │ CDP Connect │              Intercept Authorization Header            │
+│     └─────────────┘              Extract Cookies                            │
+│                                                                             │
+│  4. Store Credentials                                                       │
+│     ┌─────────────┐                                                        │
+│     │ auth.json   │ ◀──save── { cookie, bearer, userAgent }               │
+│     └─────────────┘                                                        │
+│                                                                             │
+│  5. API Calls                                                               │
+│     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐               │
+│     │ DeepSeek    │ ──▶ │ DeepSeek    │ ──▶ │ chat.deep-  │               │
+│     │ WebClient   │     │ Web API     │     │ seek.com    │               │
+│     └─────────────┘     └─────────────┘     └─────────────┘               │
+│         Using stored Cookie + Bearer Token                                  │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Technical Components
+
+| Component | Implementation |
+|-----------|----------------|
+| **Browser Automation** | Playwright CDP connection to Chrome |
+| **Credential Capture** | Network request interception, Authorization Header extraction |
+| **PoW Challenge** | WASM SHA3 computation for anti-bot bypass |
+| **Streaming Response** | SSE parsing + custom tag parser |
+
+---
+
+## Doubao Web Usage
+
+Doubao integration uses **browser automation** (Playwright) for authentication and API access, similar to Claude Web.
+
+### How It Works
+
+```
+Browser Login (Playwright)
+    ↓
+Capture sessionid & ttwid (Cookies)
+    ↓
+Keep Browser Connection Open
+    ↓
+Execute Requests in Browser Context (page.evaluate)
+    ↓
+Doubao API Response (SSE Stream)
+```
+
+**Key Features:**
+- ✅ **No Proxy Required**: Direct browser-based access
+- ✅ **Automatic Parameter Handling**: Browser generates dynamic parameters (msToken, a_bogus, fp, etc.)
+- ✅ **Cloudflare Bypass**: Requests sent in real browser context
+- ✅ **Simple Authentication**: Only needs sessionid and ttwid
+- ✅ **Streaming Support**: Real-time response streaming
+
+### Quick Start
+
+```bash
+# Step 1: Start Chrome in debug mode
+./start-chrome-debug.sh
+
+# Step 2: Configure Doubao (in another terminal)
+./onboard.sh
+# Select: Doubao -> Automated Login
+
+# Step 3: Start Gateway
+./server.sh start
+
+# Step 4: Test
+./test-doubao.sh "你好"
+
+# Or open Web UI
+open http://127.0.0.1:3001
+```
+
+### Available Models
+
+| Model ID | Name | Features |
+|----------|------|----------|
+| `doubao-seed-2.0` | Doubao-Seed 2.0 | Supports reasoning |
+| `doubao-pro` | Doubao Pro | Standard model |
+
+### Configuration
+
+The configuration is stored in `.openclaw-state/openclaw.json`:
 
 ```json
 {
-  "auth": {
+  "browser": {
+    "attachOnly": true,
+    "defaultProfile": "my-chrome",
     "profiles": {
-      "deepseek-web:default": {
-        "provider": "deepseek-web",
-        "mode": "api_key"
+      "my-chrome": {
+        "cdpUrl": "http://127.0.0.1:9222"
       }
     }
   },
   "models": {
     "providers": {
-      "deepseek-web": {
-        "baseUrl": "https://chat.deepseek.com",
-        "api": "deepseek-web",
+      "doubao-web": {
+        "baseUrl": "https://www.doubao.com",
+        "api": "doubao-web",
         "models": [
           {
-            "id": "deepseek-chat",
-            "name": "DeepSeek Chat",
-            "contextWindow": 64000,
-            "maxTokens": 4096
-          },
-          {
-            "id": "deepseek-reasoner",
-            "name": "DeepSeek Reasoner",
-            "reasoning": true,
-            "contextWindow": 64000,
-            "maxTokens": 8192
+            "id": "doubao-seed-2.0",
+            "name": "Doubao-Seed 2.0 (Web)"
           }
         ]
       }
     }
-  },
-  "gateway": {
-    "port": 3001,
-    "auth": {
-      "mode": "token",
-      "token": "your-gateway-token"
-    }
   }
 }
 ```
+
+### Troubleshooting
+
+**Chrome connection failed:**
+```bash
+# Check if Chrome is running
+ps aux | grep "chrome.*9222"
+```
+
+See **INSTALLATION.md** and **START_HERE.md** for full setup and troubleshooting.
 
 ---
 
@@ -150,80 +273,6 @@ export function createPlatformWebStreamFn(credentials: string): StreamFn {
 
 ---
 
-## Project Structure
-
-```
-openclaw-zero-token/
-├── src/
-│   ├── providers/
-│   │   ├── deepseek-web-auth.ts      # DeepSeek login capture
-│   │   └── deepseek-web-client.ts    # DeepSeek API client
-│   ├── agents/
-│   │   └── deepseek-web-stream.ts    # Streaming response handler
-│   ├── commands/
-│   │   └── auth-choice.apply.deepseek-web.ts  # Authentication flow
-│   └── browser/
-│       └── chrome.ts                 # Chrome automation
-├── ui/                               # Web UI (Lit 3.x)
-├── .openclaw-state/                  # Local state (not committed)
-│   ├── openclaw.json                 # Configuration
-│   └── agents/main/agent/
-│       └── auth.json                 # Credentials (sensitive)
-└── .gitignore                        # Includes .openclaw-state/
-```
-
----
-
-## Security Notes
-
-1. **Credential Storage**: Cookies and Bearer tokens are stored locally in `auth.json`, **never committed to Git**
-2. **Session Expiry**: Web sessions may expire and require periodic re-login
-3. **Rate Limits**: Web APIs may have rate limits, not suitable for high-frequency calls
-4. **Compliance**: For personal learning and research only, please comply with platform terms of service
-
----
-
-## Syncing with Upstream
-
-This project is based on OpenClaw. Sync upstream updates with:
-
-```bash
-# Add upstream repository
-git remote add upstream https://github.com/openclaw/openclaw.git
-
-# Sync upstream updates
-git fetch upstream
-git merge upstream/main
-```
-
----
-
-## Contributing
-
-Contributions are welcome, especially:
-- New platform Web authentication support (Doubao, Claude, ChatGPT, etc.)
-- Bug fixes
-- Documentation improvements
-
----
-
 ## License
 
 [MIT License](LICENSE)
-
----
-
-## Acknowledgments
-
-- [OpenClaw](https://github.com/openclaw/openclaw) - The original project
-- [DeepSeek](https://deepseek.com) - Excellent AI models
-
----
-
-## Disclaimer
-
-This project is for learning and research only. When using it to access any third-party service, please comply with that service's terms of use. The developers are not responsible for any issues arising from the use of this project.
-
-### Requirements
-
-Node.js v18+ | npm 8.x+ | Chrome latest | macOS / Linux / Windows (WSL2)

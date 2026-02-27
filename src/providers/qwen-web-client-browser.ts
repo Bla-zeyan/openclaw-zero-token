@@ -143,157 +143,81 @@ export class QwenWebClientBrowser {
   }): Promise<ReadableStream<Uint8Array>> {
     const { page } = await this.ensureBrowser();
 
-    const model = params.model || "qwen3.5-plus";
+    const conversationId = params.conversationId || crypto.randomUUID();
 
     console.log(`[Qwen Web Browser] Sending message`);
-    console.log(`[Qwen Web Browser] Model: ${model}`);
-    console.log(`[Qwen Web Browser] Message: ${params.message.substring(0, 100)}...`);
+    console.log(`[Qwen Web Browser] Conversation ID: ${conversationId}`);
+    console.log(`[Qwen Web Browser] Model: ${params.model || "qwen-max"}`);
 
-    // Step 1: Create a new chat session to get chat_id
-    const createChatResult = await page.evaluate(
-      async ({ baseUrl }) => {
-        try {
-          const url = `${baseUrl}/api/v2/chats/new`;
-          console.log(`[Browser] Creating chat: ${url}`);
-          
-          const res = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}),
-          });
-
-          console.log(`[Browser] Create chat response status: ${res.status}`);
-          console.log(`[Browser] Create chat response headers:`, Object.fromEntries(res.headers.entries()));
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.log(`[Browser] Create chat error response: ${errorText.substring(0, 500)}`);
-            return { ok: false, status: res.status, error: errorText };
-          }
-
-          const data = await res.json();
-          const chatId = data.data?.id ?? data.chat_id ?? data.id ?? data.chatId;
-          console.log(`[Browser] Chat created, chat ID:`, chatId);
-          return { ok: true, chatId, fullData: data };
-        } catch (err) {
-          console.error(`[Browser] Create chat exception:`, err);
-          return { ok: false, status: 500, error: String(err) };
-        }
-      },
-      { baseUrl: this.baseUrl },
-    );
-
-    console.log(`[Qwen Web Browser] Create chat result:`, JSON.stringify(createChatResult));
-
-    if (!createChatResult.ok || !createChatResult.chatId) {
-      console.error(`[Qwen Web Browser] Failed to create chat`);
-      console.error(`[Qwen Web Browser] Error: ${createChatResult.error}`);
-      console.error(`[Qwen Web Browser] Full result:`, JSON.stringify(createChatResult));
-      throw new Error(`Failed to create Qwen chat: ${createChatResult.error || 'No chat_id in response'}`);
-    }
-
-    const chatId = createChatResult.chatId;
-    console.log(`[Qwen Web Browser] Chat ID: ${chatId}`);
-
-    // Step 2: Send message using the chat_id
-    const responseData = await page.evaluate(
-      async ({ baseUrl, chatId, model, message }) => {
-        try {
-          const url = `${baseUrl}/api/v2/chat/completions?chat_id=${chatId}`;
-          console.log(`[Browser] Sending message: ${url}`);
-          
-          const fid = crypto.randomUUID();
-          const requestBody = {
-            stream: true,
-            version: "2.1",
-            incremental_output: true,
-            chat_id: chatId,
-            chat_mode: "normal",
-            model: model,
-            parent_id: null,
-            messages: [
+    const body = {
+      model: params.model || "qwen-max",
+      input: {
+        messages: [
+          {
+            role: "user",
+            content: [
               {
-                fid,
-                parentId: null,
-                childrenIds: [],
-                role: "user",
-                content: message,
-                user_action: "chat",
-                files: [],
-                timestamp: Math.floor(Date.now() / 1000),
-                models: [model],
-                chat_type: "t2t",
-                feature_config: { thinking_enabled: true, output_schema: "phase" },
+                type: "text",
+                text: params.message,
               },
             ],
-          };
-
-          console.log(`[Browser] Request body:`, JSON.stringify(requestBody, null, 2));
-          
-          const res = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "text/event-stream",
-            },
-            body: JSON.stringify(requestBody),
-          });
-
-          console.log(`[Browser] Response status: ${res.status}`);
-          console.log(`[Browser] Response headers:`, Object.fromEntries(res.headers.entries()));
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.log(`[Browser] Error response: ${errorText.substring(0, 500)}`);
-            return { ok: false, status: res.status, error: errorText };
-          }
-
-          const reader = res.body?.getReader();
-          if (!reader) {
-            return { ok: false, status: 500, error: "No response body" };
-          }
-
-          const decoder = new TextDecoder();
-          let fullText = "";
-          let chunkCount = 0;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            fullText += chunk;
-            chunkCount++;
-            if (chunkCount <= 3) {
-              console.log(`[Browser] Chunk ${chunkCount}: ${chunk.substring(0, 200)}`);
-            }
-          }
-
-          console.log(`[Browser] Total chunks: ${chunkCount}, Total length: ${fullText.length}`);
-          return { ok: true, data: fullText };
-        } catch (err) {
-          console.error(`[Browser] Fetch error:`, err);
-          return { ok: false, status: 500, error: String(err) };
-        }
+          },
+        ],
       },
-      { baseUrl: this.baseUrl, chatId, model: model, message: params.message },
+      parameters: {
+        result_format: "message",
+        incremental_output: true,
+      },
+      conversation_id: conversationId,
+    };
+
+    const responseData = await page.evaluate(
+      async ({ baseUrl, body }) => {
+        const res = await fetch(`${baseUrl}/api/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          return { ok: false, status: res.status, error: errorText };
+        }
+
+        const reader = res.body?.getReader();
+        if (!reader) {
+          return { ok: false, status: 500, error: "No response body" };
+        }
+
+        const decoder = new TextDecoder();
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fullText += decoder.decode(value, { stream: true });
+        }
+
+        return { ok: true, data: fullText };
+      },
+      { baseUrl: this.baseUrl, body },
     );
 
-    if (!responseData || !responseData.ok) {
-      console.error(`[Qwen Web Browser] Request failed`);
-      console.error(`[Qwen Web Browser] Error: ${responseData?.status} - ${responseData?.error}`);
+    console.log(`[Qwen Web Browser] Response: ${responseData.ok ? 200 : responseData.status}`);
 
-      if (responseData?.status === 401 || responseData?.status === 403) {
+    if (!responseData.ok) {
+      console.error(`[Qwen Web Browser] Error: ${responseData.status} - ${responseData.error}`);
+
+      if (responseData.status === 401) {
         throw new Error(
           "Authentication failed. Please re-run onboarding to refresh your Qwen session."
         );
       }
-      throw new Error(`Qwen API error: ${responseData?.status || 'unknown'} - ${responseData?.error || 'Request failed'}`);
+      throw new Error(`Qwen API error: ${responseData.status}`);
     }
-
-    console.log(`[Qwen Web Browser] Response data length: ${responseData.data?.length || 0} bytes`);
-    console.log(`[Qwen Web Browser] Response preview: ${responseData.data?.substring(0, 300) || 'empty'}`);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -318,16 +242,24 @@ export class QwenWebClientBrowser {
   async discoverModels(): Promise<ModelDefinitionConfig[]> {
     return [
       {
-        id: "qwen3.5-plus",
-        name: "Qwen 3.5 Plus",
+        id: "qwen-max",
+        name: "Qwen Max",
+        provider: "qwen-web",
+        api: "qwen-web",
+        contextWindow: 8192,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: "qwen-plus",
+        name: "Qwen Plus",
         provider: "qwen-web",
         api: "qwen-web",
         contextWindow: 32768,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 4096,
       },
       {
-        id: "qwen3.5-turbo",
-        name: "Qwen 3.5 Turbo",
+        id: "qwen-turbo",
+        name: "Qwen Turbo",
         provider: "qwen-web",
         api: "qwen-web",
         contextWindow: 8192,
