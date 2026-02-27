@@ -32,8 +32,8 @@ openclaw gateway stop
 # 2. 启动 Chrome 调试
 ./start-chrome-debug.sh
 
-# 3. 登录所有平台（在 Chrome 调试浏览器中）
-# 访问并登录 8 个新平台
+# 3. 登录各平台（在 Chrome 调试浏览器中）
+# 优先登录 DeepSeek、千问、Kimi（已测试）
 
 # 4. 配置认证
 ./onboard.sh
@@ -50,25 +50,29 @@ openclaw gateway stop
 
 在 Chrome 调试浏览器中登录以下平台：
 
-1. https://chatgpt.com
-2. https://chat.qwen.ai
-3. https://yuanbao.tencent.com/chat/na
-4. https://kimi.moonshot.cn
-5. https://gemini.google.com/app
-6. https://grok.com
-7. https://chat.z.ai
-8. https://manus.im/app
+**✅ 已测试（推荐优先）**  
+1. https://chat.deepseek.com（DeepSeek）  
+2. https://chat.qwen.ai（千问）  
+3. https://kimi.moonshot.cn（Kimi）
 
-**注意**：Claude 和 Doubao 已经登录，不需要重新登录。
+**其他（未测试）**  
+4. https://chatgpt.com  
+5. https://claude.ai  
+6. https://www.doubao.com/chat/  
+7. https://yuanbao.tencent.com/chat/na  
+8. https://gemini.google.com/app  
+9. https://grok.com  
+10. https://chat.z.ai  
+11. https://manus.im/app
 
 ---
 
-## ✅ 完成情况
+## ✅ 测试状态
 
-- ✅ 代码实现：10 个平台，32 个核心文件
-- ✅ 配置文件：已更新所有配置
-- ✅ 类型定义：已添加所有 API 类型
-- ✅ 编译部署：代码已编译并加载
+| 平台 | 状态 |
+|------|------|
+| DeepSeek、千问(Qwen)、Kimi | ✅ 已测试可用 |
+| Claude、ChatGPT、Doubao、Yuanbao、Gemini、Grok、Z、Manus | 未测试 |
 
 ---
 
@@ -76,8 +80,8 @@ openclaw gateway stop
 
 测试完成后，你将拥有：
 
-- ✅ 10 个可用的 Web 平台
-- ✅ 23 个可选的 AI 模型
+- ✅ 12 个可用的 Web 平台
+- ✅ 28+ 个可选的 AI 模型
 - ✅ 完全免费的 AI 对话服务
 - ✅ 统一的浏览器方案
 
@@ -114,7 +118,7 @@ openclaw gateway stop
 ./start-chrome-debug.sh
 
 # 3. Login to platforms (in Chrome debug browser)
-# Visit and login to 8 new platforms
+# Prioritize DeepSeek, Qwen, Kimi (tested)
 
 # 4. Configure authentication
 ./onboard.sh
@@ -127,25 +131,34 @@ Then visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c
 
 #### Platforms to Login
 
-Login to these platforms in Chrome debug browser:
+**✅ Tested (recommended first)**  
+1. https://chat.deepseek.com  
+2. https://chat.qwen.ai  
+3. https://kimi.moonshot.cn  
 
-1. https://chatgpt.com
-2. https://chat.qwen.ai
-3. https://yuanbao.tencent.com/chat/na
-4. https://kimi.moonshot.cn
-5. https://gemini.google.com/app
-6. https://grok.com
-7. https://chat.z.ai
-8. https://manus.im/app
+**Others (untested)**  
+4. https://chatgpt.com  
+5. https://claude.ai  
+6. https://www.doubao.com/chat/  
+7. https://yuanbao.tencent.com/chat/na  
+8. https://gemini.google.com/app  
+9. https://grok.com  
+10. https://chat.z.ai  
+11. https://manus.im/app
 
-**Note**: Claude and Doubao are already logged in.
+#### Test Status
+
+| Platform | Status |
+|----------|--------|
+| DeepSeek, Qwen, Kimi | ✅ Tested |
+| Claude, ChatGPT, Doubao, Yuanbao, Gemini, Grok, Z, Manus | Untested |
 
 #### Expected Results
 
 After testing, you will have:
 
-- ✅ 10 available Web platforms
-- ✅ 23 selectable AI models
+- ✅ 12 available Web platforms
+- ✅ 28+ selectable AI models
 - ✅ Completely free AI conversation service
 - ✅ Unified browser approach
 

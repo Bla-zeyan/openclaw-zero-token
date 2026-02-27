@@ -1,19 +1,19 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.2.19",
-    "lastTouchedAt": "2026-02-26T00:00:00.000Z"
+    "lastTouchedAt": "2026-02-27T00:00:00.000Z"
   },
   "wizard": {
-    "lastRunAt": "2026-02-26T00:00:00.000Z",
+    "lastRunAt": "2026-02-27T00:00:00.000Z",
     "lastRunVersion": "2026.2.19",
     "lastRunCommand": "onboard",
     "lastRunMode": "local"
   },
   "browser": {
     "attachOnly": true,
-    "defaultProfile": "my-chrome",
+    "defaultProfile": "openclaw",
     "profiles": {
-      "my-chrome": {
+      "openclaw": {
         "cdpUrl": "http://127.0.0.1:9222",
         "color": "#4285F4"
       }
@@ -22,6 +22,30 @@
   "models": {
     "mode": "merge",
     "providers": {
+      "deepseek-web": {
+        "baseUrl": "https://chat.deepseek.com",
+        "api": "deepseek-web",
+        "models": [
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek V3 (Web)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 64000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek R1 (Web)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 64000,
+            "maxTokens": 8192
+          }
+        ]
+      },
       "claude-web": {
         "baseUrl": "https://claude.ai",
         "api": "claude-web",
@@ -31,14 +55,24 @@
             "name": "Claude 3.5 Sonnet (Web)",
             "reasoning": false,
             "input": ["text", "image"],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 200000,
             "maxTokens": 8192
+          }
+        ]
+      },
+      "manus-api": {
+        "baseUrl": "https://api.manus.ai",
+        "api": "manus-api",
+        "models": [
+          {
+            "id": "manus-1.6",
+            "name": "Manus 1.6 (API)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 32000,
+            "maxTokens": 4096
           }
         ]
       }
@@ -46,15 +80,13 @@
   },
   "agents": {
     "defaults": {
-      "model": {
-        "primary": "claude-web/claude-3-5-sonnet-20241022"
-      },
+      "model": { "primary": "deepseek-web/deepseek-chat" },
       "models": {
-        "claude-web/claude-3-5-sonnet-20241022": {
-          "alias": "Claude Web"
-        }
+        "deepseek-web/deepseek-chat": { "alias": "DeepSeek Web" },
+        "claude-web/claude-3-5-sonnet-20241022": { "alias": "Claude Web" },
+        "manus-api/manus-1.6": { "alias": "Manus API" }
       },
-      "workspace": "/Users/YOUR_USERNAME/Documents/openclaw-zero-token/.openclaw-state/workspace"
+      "workspace": "~/.openclaw-state/workspace"
     }
   },
   "commands": {
@@ -70,15 +102,10 @@
       "mode": "token",
       "token": "YOUR_GATEWAY_TOKEN_HERE"
     },
-    "tailscale": {
-      "mode": "off",
-      "resetOnExit": false
-    },
+    "tailscale": { "mode": "off", "resetOnExit": false },
     "http": {
       "endpoints": {
-        "chatCompletions": {
-          "enabled": true
-        }
+        "chatCompletions": { "enabled": true }
       }
     }
   }

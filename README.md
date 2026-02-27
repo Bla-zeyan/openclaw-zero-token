@@ -10,20 +10,20 @@
 
 ### 支持的平台与模型
 
-| 平台 | 网址 | 模型 |
-|------|------|------|
-| **DeepSeek Web** | chat.deepseek.com | DeepSeek V3、DeepSeek R1、V3+Search、R1+Search |
-| **Claude Web** | claude.ai | Claude 3.5 Sonnet、3 Opus、3 Haiku |
-| **ChatGPT Web** | chatgpt.com | GPT-4、GPT-4 Turbo、GPT-3.5 Turbo |
-| **Doubao Web** | doubao.com | Doubao-Seed 2.0、Doubao Pro |
-| **Qwen Web** | chat.qwen.ai | Qwen 3.5 Plus、Qwen 3.5 Turbo |
-| **Yuanbao Web** | yuanbao.tencent.com | Hunyuan Pro、Hunyuan Standard |
-| **Kimi Web** | kimi.moonshot.cn | Moonshot v1 8K、32K、128K |
-| **Gemini Web** (gemini-web) | [https://gemini.google.com/app](https://gemini.google.com/app) | Gemini Pro、Gemini Ultra |
-| **Grok Web** | grok.com | Grok 1、Grok 2 |
-| **Z Web** | chat.z.ai | GLM-4、GLM-3 Turbo |
-| **Manus Web** | manus.im | Manus 1 |
-| **Manus API** | api.manus.ai | Manus 1.6、Manus 1.6 Lite（官方 API，支持免费额度） |
+| 平台 | 网址 | 模型 | 测试状态 |
+|------|------|------|----------|
+| **DeepSeek Web** | chat.deepseek.com | DeepSeek V3、DeepSeek R1、V3+Search、R1+Search | ✅ 已测试 |
+| **Qwen Web**（千问） | chat.qwen.ai | Qwen 3.5 Plus、Qwen 3.5 Turbo | ✅ 已测试 |
+| **Kimi Web** | kimi.moonshot.cn | Moonshot v1 8K、32K、128K | ✅ 已测试 |
+| **Claude Web** | claude.ai | Claude 3.5 Sonnet、3 Opus、3 Haiku | 未测试 |
+| **ChatGPT Web** | chatgpt.com | GPT-4、GPT-4 Turbo、GPT-3.5 Turbo | 未测试 |
+| **Doubao Web** | doubao.com | Doubao-Seed 2.0、Doubao Pro | 未测试 |
+| **Yuanbao Web** | yuanbao.tencent.com | Hunyuan Pro、Hunyuan Standard | 未测试 |
+| **Gemini Web** (gemini-web) | [https://gemini.google.com/app](https://gemini.google.com/app) | Gemini Pro、Gemini Ultra | 未测试 |
+| **Grok Web** | grok.com | Grok 1、Grok 2 | 未测试 |
+| **Z Web** | chat.z.ai | GLM-4、GLM-3 Turbo | 未测试 |
+| **Manus Web** | manus.im | Manus 1 | 未测试 |
+| **Manus API** | api.manus.ai | Manus 1.6、Manus 1.6 Lite（官方 API，支持免费额度） | 未测试 |
 
 ### 快速开始
 
@@ -64,20 +64,20 @@ Support for **12 platforms** and **28+ models** with AI conversation services, c
 
 ### Supported Platforms & Models
 
-| Platform | URL | Models |
-|----------|-----|--------|
-| **DeepSeek Web** | chat.deepseek.com | DeepSeek V3, R1, V3+Search, R1+Search |
-| **Claude Web** | claude.ai | Claude 3.5 Sonnet, 3 Opus, 3 Haiku |
-| **ChatGPT Web** | chatgpt.com | GPT-4, GPT-4 Turbo, GPT-3.5 Turbo |
-| **Doubao Web** | doubao.com | Doubao-Seed 2.0, Doubao Pro |
-| **Qwen Web** | chat.qwen.ai | Qwen 3.5 Plus, Qwen 3.5 Turbo |
-| **Yuanbao Web** | yuanbao.tencent.com | Hunyuan Pro, Hunyuan Standard |
-| **Kimi Web** | kimi.moonshot.cn | Moonshot v1 8K, 32K, 128K |
-| **Gemini Web** (gemini-web) | [https://gemini.google.com/app](https://gemini.google.com/app) | Gemini Pro, Gemini Ultra |
-| **Grok Web** | grok.com | Grok 1, Grok 2 |
-| **Z Web** | chat.z.ai | GLM-4, GLM-3 Turbo |
-| **Manus Web** | manus.im | Manus 1 |
-| **Manus API** | api.manus.ai | Manus 1.6, Manus 1.6 Lite (official API, free tier) |
+| Platform | URL | Models | Tested |
+|----------|-----|--------|--------|
+| **DeepSeek Web** | chat.deepseek.com | DeepSeek V3, R1, V3+Search, R1+Search | ✅ Yes |
+| **Qwen Web** | chat.qwen.ai | Qwen 3.5 Plus, Qwen 3.5 Turbo | ✅ Yes |
+| **Kimi Web** | kimi.moonshot.cn | Moonshot v1 8K, 32K, 128K | ✅ Yes |
+| **Claude Web** | claude.ai | Claude 3.5 Sonnet, 3 Opus, 3 Haiku | Untested |
+| **ChatGPT Web** | chatgpt.com | GPT-4, GPT-4 Turbo, GPT-3.5 Turbo | Untested |
+| **Doubao Web** | doubao.com | Doubao-Seed 2.0, Doubao Pro | Untested |
+| **Yuanbao Web** | yuanbao.tencent.com | Hunyuan Pro, Hunyuan Standard | Untested |
+| **Gemini Web** (gemini-web) | [https://gemini.google.com/app](https://gemini.google.com/app) | Gemini Pro, Gemini Ultra | Untested |
+| **Grok Web** | grok.com | Grok 1, Grok 2 | Untested |
+| **Z Web** | chat.z.ai | GLM-4, GLM-3 Turbo | Untested |
+| **Manus Web** | manus.im | Manus 1 | Untested |
+| **Manus API** | api.manus.ai | Manus 1.6, Manus 1.6 Lite (official API, free tier) | Untested |
 
 ### Quick Start
 
