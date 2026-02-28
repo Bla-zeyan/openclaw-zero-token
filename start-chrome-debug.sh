@@ -105,7 +105,6 @@ if curl -s http://127.0.0.1:9222/json/version > /dev/null 2>&1; then
         "https://chatgpt.com"
         "https://www.doubao.com/chat/"
         "https://chat.qwen.ai"
-        "https://yuanbao.tencent.com"
         "https://www.kimi.com"
         "https://gemini.google.com/app"
         "https://grok.com"
@@ -117,7 +116,7 @@ if curl -s http://127.0.0.1:9222/json/version > /dev/null 2>&1; then
         sleep 0.5
     done
 
-    echo "✓ 已打开: DeepSeek, Claude, ChatGPT, Doubao, Qwen, Yuanbao, Kimi, Gemini, Grok, Z, Manus"
+    echo "✓ 已打开: DeepSeek, Claude, ChatGPT, Doubao, Qwen, Kimi, Gemini, Grok, Z, Manus"
     echo ""
     echo "=========================================="
     echo "下一步操作："

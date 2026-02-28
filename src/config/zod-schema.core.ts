@@ -16,7 +16,6 @@ export const ModelApiSchema = z.union([
   z.literal("claude-web"),
   z.literal("chatgpt-web"),
   z.literal("qwen-web"),
-  z.literal("yuanbao-web"),
   z.literal("kimi-web"),
   z.literal("gemini-web"),
   z.literal("grok-web"),

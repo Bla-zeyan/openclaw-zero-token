@@ -413,21 +413,6 @@ export async function setQwenWebCookie(
   });
 }
 
-export async function setYuanbaoWebCookie(
-  options: { cookie: string },
-  agentDir?: string,
-) {
-  upsertAuthProfile({
-    profileId: "yuanbao-web:default",
-    credential: {
-      type: "api_key",
-      provider: "yuanbao-web",
-      key: options.cookie,
-    },
-    agentDir: resolveAuthAgentDir(agentDir),
-  });
-}
-
 export async function setKimiWebCookie(
   options: { cookie: string },
   agentDir?: string,

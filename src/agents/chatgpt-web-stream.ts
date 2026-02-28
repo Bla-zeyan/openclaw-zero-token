@@ -79,6 +79,8 @@ export function createChatGPTWebStreamFn(cookieOrJson: string): StreamFn {
 
         const contentParts: TextContent[] = [];
         let contentIndex = 0;
+        let sseEventCount = 0;
+        const sseSamples: Array<{ role?: string; hasParts: boolean; contentPreview?: string }> = [];
 
         const createPartial = (): AssistantMessage => ({
           role: "assistant",
@@ -122,8 +124,39 @@ export function createChatGPTWebStreamFn(cookieOrJson: string): StreamFn {
               parentMessageMap.set(sessionKey, data.message.id);
             }
 
-            // Extract content
-            const content = data.message?.content?.parts?.[0];
+            // 只处理 assistant 的回复，忽略 user 的 echo 等
+            const role = data.message?.author?.role ?? data.message?.role;
+            if (role && role !== "assistant") {
+              if (sseEventCount < 8) {
+                console.log(`[ChatGPTWebStream] Skip event (role=${role})`);
+              }
+              return;
+            }
+
+            if (data.message && sseEventCount < 8) {
+              sseEventCount++;
+              const rawPart = data.message?.content?.parts?.[0];
+              const preview =
+                typeof rawPart === "string"
+                  ? rawPart.slice(0, 100)
+                  : typeof rawPart === "object" && rawPart !== null && "text" in rawPart
+                    ? String((rawPart as { text?: string }).text).slice(0, 100)
+                    : undefined;
+              sseSamples.push({
+                role: role ?? undefined,
+                hasParts: !!(data.message?.content?.parts?.length),
+                contentPreview: preview,
+              });
+            }
+
+            // Extract content: 支持 parts[0] 为字符串或 { type: "text", text: "..." }
+            const rawPart = data.message?.content?.parts?.[0];
+            const content =
+              typeof rawPart === "string"
+                ? rawPart
+                : typeof rawPart === "object" && rawPart !== null && "text" in rawPart
+                  ? (rawPart as { text?: string }).text
+                  : undefined;
             if (typeof content === "string" && content) {
               const delta = content.slice(accumulatedContent.length);
               if (delta) {
@@ -172,6 +205,12 @@ export function createChatGPTWebStreamFn(cookieOrJson: string): StreamFn {
         }
 
         console.log(`[ChatGPTWebStream] Stream completed. Content length: ${accumulatedContent.length}`);
+        if (sseSamples.length > 0) {
+          console.log(
+            `[ChatGPTWebStream] SSE samples:`,
+            JSON.stringify(sseSamples, null, 2).slice(0, 800)
+          );
+        }
 
         const assistantMessage: AssistantMessage = {
           role: "assistant",

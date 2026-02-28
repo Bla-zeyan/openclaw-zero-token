@@ -57,8 +57,8 @@ npm run build
 
 | 平台 | 状态 |
 |------|------|
-| DeepSeek、千问、Kimi、Claude Web、豆包、Manus API | ✅ 已测试可用 |
-| ChatGPT、Yuanbao、Gemini、Grok、Z、Manus Web | 未测试 |
+| DeepSeek、千问、Kimi、Claude Web、豆包、ChatGPT Web、Grok Web、Manus API | ✅ 已测试可用 |
+| Gemini、Z、Manus Web | 待测试 |
 
 ---
 
@@ -121,7 +121,6 @@ Then visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c
 4. https://chatgpt.com  
 5. https://claude.ai  
 6. https://www.doubao.com/chat/  
-7. https://yuanbao.tencent.com/chat/na  
 8. https://gemini.google.com/app  
 9. https://grok.com  
 10. https://chat.z.ai  
@@ -131,8 +130,8 @@ Then visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c
 
 | Platform | Status |
 |----------|--------|
-| DeepSeek, Qwen, Kimi, Claude Web, Doubao, Manus API | ✅ Tested |
-| ChatGPT, Yuanbao, Gemini, Grok, Z, Manus Web | Untested |
+| DeepSeek, Qwen, Kimi, Claude Web, Doubao, ChatGPT Web, Grok Web, Manus API | ✅ Tested |
+| Gemini, Z, Manus Web | Untested |
 
 #### Expected Results
 

@@ -35,7 +35,6 @@ import { createDoubaoWebStreamFn } from "../../doubao-web-stream.js";
 import { createClaudeWebStreamFn } from "../../claude-web-stream.js";
 import { createChatGPTWebStreamFn } from "../../chatgpt-web-stream.js";
 import { createQwenWebStreamFn } from "../../qwen-web-stream.js";
-import { createYuanbaoWebStreamFn } from "../../yuanbao-web-stream.js";
 import { createKimiWebStreamFn } from "../../kimi-web-stream.js";
 import { createGeminiWebStreamFn } from "../../gemini-web-stream.js";
 import { createGrokWebStreamFn } from "../../grok-web-stream.js";
@@ -661,9 +660,6 @@ export async function runEmbeddedAttempt(
       } else if (params.model.api === "qwen-web") {
         const auth = (await params.authStorage.getApiKey("qwen-web")) || "";
         activeSession.agent.streamFn = createQwenWebStreamFn(auth) as StreamFn;
-      } else if (params.model.api === "yuanbao-web") {
-        const auth = (await params.authStorage.getApiKey("yuanbao-web")) || "";
-        activeSession.agent.streamFn = createYuanbaoWebStreamFn(auth) as StreamFn;
       } else if (params.model.api === "kimi-web") {
         const auth = (await params.authStorage.getApiKey("kimi-web")) || "";
         activeSession.agent.streamFn = createKimiWebStreamFn(auth) as StreamFn;

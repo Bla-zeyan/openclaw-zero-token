@@ -30,10 +30,9 @@ OpenClaw Zero Token 是 [OpenClaw](https://github.com/openclaw/openclaw) 的分�
 | Kimi | ✅ **已测试** | Moonshot v1 8K, 32K, 128K |
 | Claude Web | ✅ **已测试** | claude-3-5-sonnet-20241022, claude-3-opus-20240229, claude-3-haiku-20240307 |
 | 豆包 (Doubao) | ✅ **已测试** | doubao-seed-2.0, doubao-pro |
-| ChatGPT Web | ⏳ **未测试** | GPT-4, GPT-4 Turbo |
-| 元宝 (Yuanbao) | ⏳ **未测试** | Hunyuan Pro, Hunyuan Standard |
+| ChatGPT Web | ✅ **已测试** | GPT-4, GPT-4 Turbo |
 | Gemini Web | ⏳ **未测试** | Gemini Pro, Gemini Ultra |
-| Grok Web | ⏳ **未测试** | Grok 1, Grok 2 |
+| Grok Web | ✅ **已测试** | Grok 1, Grok 2 |
 | Z Web | ⏳ **未测试** | GLM-4, GLM-3 Turbo |
 | Manus Web | ⏳ **未测试** | Manus 1 |
 | Manus API | ✅ **已测试** | Manus 1.6, Manus 1.6 Lite（API key，免费额度） |

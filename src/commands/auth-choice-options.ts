@@ -203,12 +203,6 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["qwen-web"],
   },
   {
-    value: "yuanbao-web",
-    label: "Yuanbao Web (元宝)",
-    hint: "Tencent Hunyuan via browser",
-    choices: ["yuanbao-web"],
-  },
-  {
     value: "kimi-web",
     label: "Kimi Web",
     hint: "Moonshot via browser",
@@ -413,11 +407,6 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     value: "qwen-web",
     label: "Qwen Browser",
     hint: "Access Qwen via browser session",
-  },
-  {
-    value: "yuanbao-web",
-    label: "Yuanbao Browser (元宝)",
-    hint: "Access Tencent Hunyuan via browser",
   },
   {
     value: "kimi-web",

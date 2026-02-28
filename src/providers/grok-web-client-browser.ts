@@ -16,6 +16,8 @@ export class GrokWebClientBrowser {
   private context: BrowserContext | null = null;
   private page: Page | null = null;
   private initialized = false;
+  lastConversationId: string | undefined;
+  lastResponseId: string | undefined;
 
   constructor(options: GrokWebClientOptions) {
     this.options = options;
@@ -105,8 +107,165 @@ export class GrokWebClientBrowser {
     this.initialized = true;
   }
 
+  /**
+   * DOM 模拟：通过真实浏览器交互发送消息，绕过 403 anti-bot
+   * 参考 ChatGPT Web 的 chatCompletionsViaDOM 实现
+   */
+  private async chatCompletionsViaDOM(params: {
+    message: string;
+    signal?: AbortSignal;
+  }): Promise<ReadableStream<Uint8Array>> {
+    if (!this.page) throw new Error("GrokWebClientBrowser not initialized");
+
+    const sent = await this.page.evaluate(
+      (msg: string) => {
+        const inputSelectors = [
+          '[contenteditable="true"]',
+          "textarea[placeholder]",
+          "textarea",
+          'div[role="textbox"]',
+          'div[contenteditable="true"]',
+        ];
+        let inputEl: HTMLElement | null = null;
+        for (const sel of inputSelectors) {
+          inputEl = document.querySelector(sel);
+          if (inputEl && inputEl.offsetParent !== null) break;
+        }
+        if (!inputEl) return { ok: false, error: "找不到输入框" };
+
+        inputEl.focus();
+        if (inputEl.tagName === "TEXTAREA" || (inputEl as HTMLInputElement).tagName === "INPUT") {
+          (inputEl as HTMLTextAreaElement).value = msg;
+          (inputEl as HTMLTextAreaElement).dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          (inputEl as HTMLElement).innerText = msg;
+          (inputEl as HTMLElement).dispatchEvent(new Event("input", { bubbles: true }));
+          (inputEl as HTMLElement).dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        const sendSelectors = [
+          'button[aria-label*="Send"]',
+          'button[aria-label*="send"]',
+          'button[type="submit"]',
+          'button[data-testid*="send"]',
+          "form button[type=submit]",
+          'button:has(svg)',
+          ".send-button",
+          "[class*='send']",
+        ];
+        let sendBtn: HTMLElement | null = null;
+        for (const sel of sendSelectors) {
+          sendBtn = document.querySelector(sel);
+          if (sendBtn && !(sendBtn as HTMLButtonElement).disabled) break;
+        }
+        if (sendBtn) {
+          (sendBtn as HTMLElement).click();
+          return { ok: true };
+        }
+        const textarea = inputEl.closest("form")?.querySelector("button[type=submit]");
+        if (textarea) {
+          (textarea as HTMLElement).click();
+          return { ok: true };
+        }
+        const keyEvent = new KeyboardEvent("keydown", {
+          key: "Enter",
+          code: "Enter",
+          keyCode: 13,
+          which: 13,
+          bubbles: true,
+        });
+        inputEl.dispatchEvent(keyEvent);
+        return { ok: true };
+      },
+      params.message
+    );
+
+    if (!sent.ok) {
+      throw new Error(`Grok DOM 模拟失败: ${sent.error}`);
+    }
+
+    console.log("[Grok Web Browser] DOM 模拟已发送，轮询等待回复...");
+
+    const maxWaitMs = 90000;
+    const pollIntervalMs = 2000;
+    let lastText = "";
+    let stableCount = 0;
+    const signal = params.signal;
+
+    for (let elapsed = 0; elapsed < maxWaitMs; elapsed += pollIntervalMs) {
+      if (signal?.aborted) throw new Error("Grok 请求已取消");
+
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
+
+      const result = await this.page.evaluate(() => {
+        const clean = (t: string) => t.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+        const selectors = [
+          '[data-role="assistant"]',
+          '[class*="assistant"]',
+          '[class*="response"]',
+          '[class*="message"]',
+          "article",
+          "[class*='markdown']",
+          ".prose",
+        ];
+        let text = "";
+        for (const sel of selectors) {
+          const els = document.querySelectorAll(sel);
+          const last = els.length > 0 ? els[els.length - 1] : null;
+          if (last) {
+            const t = clean((last as HTMLElement).textContent ?? "");
+            if (t.length > 10) {
+              text = t;
+              break;
+            }
+          }
+        }
+        if (!text) {
+          const all = document.querySelectorAll("p, div[class]");
+          for (let i = all.length - 1; i >= 0; i--) {
+            const el = all[i];
+            const t = clean((el as HTMLElement).textContent ?? "");
+            if (t.length > 20 && !t.includes("Ask Grok")) {
+              text = t;
+              break;
+            }
+          }
+        }
+        const stopBtn = document.querySelector('[aria-label*="Stop"], [aria-label*="stop"]');
+        const isStreaming = !!stopBtn;
+        return { text, isStreaming };
+      });
+
+      if (result.text && result.text !== lastText) {
+        lastText = result.text;
+        stableCount = 0;
+      } else if (result.text) {
+        stableCount++;
+        if (!result.isStreaming && stableCount >= 2) {
+          break;
+        }
+      }
+    }
+
+    if (!lastText) {
+      throw new Error(
+        "Grok DOM 模拟：未检测到回复。请确保 grok.com 页面已打开、已登录，且输入框可见。"
+      );
+    }
+
+    const ndjsonLine = JSON.stringify({ contentDelta: lastText }) + "\n";
+    const encoder = new TextEncoder();
+    return new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode(ndjsonLine));
+        controller.close();
+      },
+    });
+  }
+
   async chatCompletions(params: {
     conversationId?: string;
+    parentResponseId?: string;
     message: string;
     model: string;
     signal?: AbortSignal;
@@ -115,30 +274,107 @@ export class GrokWebClientBrowser {
       throw new Error("GrokWebClientBrowser not initialized");
     }
 
-    const { conversationId, message, model } = params;
+    const { conversationId, parentResponseId, message, model } = params;
+    console.log(
+      `[Grok Web Browser] Sending request... conversationId=${conversationId ?? "(将从页面或 API 获取)"} messageLen=${message.length}`
+    );
 
-    const streamResponse = await this.page.evaluate(
-      async ({ conversationId, message, model }) => {
-        const response = await fetch("https://grok.com/api/chat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+    const evalPromise = this.page.evaluate(
+      async ({
+        conversationId,
+        parentResponseId,
+        message,
+        model,
+      }: {
+        conversationId?: string;
+        parentResponseId?: string;
+        message: string;
+        model: string;
+      }) => {
+        let convId = conversationId;
+        let parentId = parentResponseId;
+
+        if (!convId) {
+          const m = window.location.pathname.match(/\/c\/([a-f0-9-]{36})/);
+          convId = m?.[1] ?? null;
+        }
+        if (!convId) {
+          const urls = [
+            "https://grok.com/rest/app-chat/conversations?limit=1",
+            "https://grok.com/rest/app-chat/conversations",
+          ];
+          for (const url of urls) {
+            const listRes = await fetch(url, { credentials: "include" });
+            if (listRes.ok) {
+              const list = await listRes.json();
+              convId = list?.conversations?.[0]?.conversationId ?? null;
+              if (convId) break;
+            }
+          }
+        }
+
+        if (!convId) {
+          throw new Error(
+            `需要 conversationId。当前页面: ${window.location.href}。请先在 grok.com 中打开或新建一个对话（点击 New chat），再重试。`
+          );
+        }
+
+        const body: Record<string, unknown> = {
+          message,
+          parentResponseId: parentId ?? crypto.randomUUID(),
+          disableSearch: false,
+          enableImageGeneration: true,
+          imageAttachments: [],
+          returnImageBytes: false,
+          returnRawGrokInXaiRequest: false,
+          fileAttachments: [],
+          enableImageStreaming: true,
+          imageGenerationCount: 2,
+          forceConcise: false,
+          toolOverrides: {},
+          enableSideBySide: true,
+          sendFinalMetadata: true,
+          isReasoning: false,
+          metadata: { request_metadata: { mode: "auto" } },
+          disableTextFollowUps: false,
+          disableArtifact: false,
+          isFromGrokFiles: false,
+          disableMemory: false,
+          forceSideBySide: false,
+          modelMode: "MODEL_MODE_AUTO",
+          isAsyncChat: false,
+          skipCancelCurrentInflightRequests: false,
+          isRegenRequest: false,
+          disableSelfHarmShortCircuit: false,
+          deviceEnvInfo: {
+            darkModeEnabled: false,
+            devicePixelRatio: 1,
+            screenWidth: 2560,
+            screenHeight: 1440,
+            viewportWidth: 1440,
+            viewportHeight: 719,
           },
-          body: JSON.stringify({
-            conversation_id: conversationId || undefined,
-            message,
-            model,
-          }),
-        });
+        };
+
+        const response = await fetch(
+          `https://grok.com/rest/app-chat/conversations/${convId}/responses`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(body),
+          }
+        );
 
         if (!response.ok) {
-          throw new Error(`Grok API error: ${response.status} ${response.statusText}`);
+          const errText = await response.text();
+          throw new Error(
+            `Grok API error: ${response.status} ${response.statusText} - ${errText.slice(0, 300)}`
+          );
         }
 
         const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response body");
-        }
+        if (!reader) throw new Error("No response body");
 
         const chunks: number[][] = [];
         while (true) {
@@ -147,16 +383,52 @@ export class GrokWebClientBrowser {
           chunks.push(Array.from(value));
         }
 
-        return chunks;
+        return { chunks, conversationId: convId };
       },
-      { conversationId, message, model },
+      { conversationId, parentResponseId, message, model },
+    );
+
+    const timeoutMs = 120000;
+    const result = await Promise.race([
+      evalPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error(`Grok 请求超时（${timeoutMs / 1000}秒）。请确保 grok.com 已登录且页面可访问。`)),
+          timeoutMs
+        )
+      ),
+    ]).catch((err) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("403") || msg.includes("anti-bot")) {
+        console.log(
+          "[Grok Web Browser] 403 anti-bot 触发，切换到 DOM 模拟（由真实浏览器交互发起，不易触发风控）"
+        );
+        return this.chatCompletionsViaDOM({
+          message: params.message,
+          signal: params.signal,
+        });
+      }
+      console.error(`[Grok Web Browser] evaluate error:`, msg);
+      throw err;
+    });
+
+    if (result instanceof ReadableStream) return result;
+
+    const apiResult = result as { chunks: number[][]; conversationId?: string };
+    this.lastConversationId = apiResult.conversationId ?? undefined;
+
+    const fullBytes = apiResult.chunks.flatMap((c) => c);
+    const fullText = new TextDecoder().decode(new Uint8Array(fullBytes));
+    console.log(`[Grok Web Browser] Response length: ${fullBytes.length} bytes`);
+    console.log(
+      `[Grok Web Browser] NDJSON sample:\n${fullText.slice(0, 1200)}${fullText.length > 1200 ? "\n...(truncated)" : ""}`
     );
 
     let index = 0;
     return new ReadableStream({
       pull(controller) {
-        if (index < streamResponse.length) {
-          controller.enqueue(new Uint8Array(streamResponse[index]));
+        if (index < apiResult.chunks.length) {
+          controller.enqueue(new Uint8Array(apiResult.chunks[index]));
           index++;
         } else {
           controller.close();

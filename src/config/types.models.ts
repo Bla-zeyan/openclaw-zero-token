@@ -11,7 +11,6 @@ export type ModelApi =
   | "claude-web"
   | "chatgpt-web"
   | "qwen-web"
-  | "yuanbao-web"
   | "kimi-web"
   | "gemini-web"
   | "grok-web"

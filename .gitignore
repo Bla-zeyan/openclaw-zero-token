@@ -102,6 +102,7 @@ claudecookie.txt
 
 # local tooling
 .serena/
+dev-debug.sh
 
 # Agent credentials and memory (NEVER COMMIT)
 /memory/

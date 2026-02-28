@@ -199,17 +199,6 @@ const QWEN_WEB_DEFAULT_COST = {
   cacheWrite: 0,
 };
 
-export const YUANBAO_WEB_BASE_URL = "https://yuanbao.tencent.com";
-export const YUANBAO_WEB_DEFAULT_MODEL_ID = "hunyuan-pro";
-const YUANBAO_WEB_DEFAULT_CONTEXT_WINDOW = 32000;
-const YUANBAO_WEB_DEFAULT_MAX_TOKENS = 4096;
-const YUANBAO_WEB_DEFAULT_COST = {
-  input: 0,
-  output: 0,
-  cacheRead: 0,
-  cacheWrite: 0,
-};
-
 export const KIMI_WEB_BASE_URL = "https://www.kimi.com";
 export const KIMI_WEB_DEFAULT_MODEL_ID = "moonshot-v1-32k";
 const KIMI_WEB_DEFAULT_CONTEXT_WINDOW = 32000;
@@ -1010,35 +999,6 @@ export async function buildQwenWebProvider(params?: {
   };
 }
 
-export async function buildYuanbaoWebProvider(params?: {
-  apiKey?: string;
-}): Promise<ProviderConfig> {
-  return {
-    baseUrl: YUANBAO_WEB_BASE_URL,
-    api: "yuanbao-web",
-    models: [
-      {
-        id: "hunyuan-pro",
-        name: "Hunyuan Pro (Web)",
-        reasoning: false,
-        input: ["text"],
-        cost: YUANBAO_WEB_DEFAULT_COST,
-        contextWindow: YUANBAO_WEB_DEFAULT_CONTEXT_WINDOW,
-        maxTokens: YUANBAO_WEB_DEFAULT_MAX_TOKENS,
-      },
-      {
-        id: "hunyuan-standard",
-        name: "Hunyuan Standard (Web)",
-        reasoning: false,
-        input: ["text"],
-        cost: YUANBAO_WEB_DEFAULT_COST,
-        contextWindow: YUANBAO_WEB_DEFAULT_CONTEXT_WINDOW,
-        maxTokens: YUANBAO_WEB_DEFAULT_MAX_TOKENS,
-      },
-    ],
-  };
-}
-
 export async function buildKimiWebProvider(params?: {
   apiKey?: string;
 }): Promise<ProviderConfig> {
@@ -1490,15 +1450,6 @@ export async function resolveImplicitProviders(params: {
   providers["qwen-web"] = {
     ...(await buildQwenWebProvider({ apiKey: qwenWebKey })),
     apiKey: qwenWebKey,
-  };
-
-  const yuanbaoWebKey =
-    resolveEnvApiKeyVarName("yuanbao-web") ??
-    resolveApiKeyFromProfiles({ provider: "yuanbao-web", store: authStore });
-
-  providers["yuanbao-web"] = {
-    ...(await buildYuanbaoWebProvider({ apiKey: yuanbaoWebKey })),
-    apiKey: yuanbaoWebKey,
   };
 
   const kimiWebKey =

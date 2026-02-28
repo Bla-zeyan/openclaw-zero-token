@@ -173,6 +173,121 @@ export class ChatGPTWebClientBrowser {
     await new Promise((r) => setTimeout(r, 2000));
   }
 
+  /**
+   * DOM 模拟：通过真实浏览器交互发送消息，绕过 403 风控
+   * 参考：zsodur/chatgpt-api-by-browser-script 等 DOM 模拟实现
+   */
+  private async chatCompletionsViaDOM(params: {
+    message: string;
+    signal?: AbortSignal;
+  }): Promise<ReadableStream<Uint8Array>> {
+    const { page } = await this.ensureBrowser();
+
+    const sent = await page.evaluate(
+      (msg: string) => {
+        // 多备选选择器适配 ChatGPT 不同版本 UI
+        const inputSelectors = [
+          "#prompt-textarea",
+          "textarea[placeholder]",
+          "textarea",
+          '[contenteditable="true"][data-placeholder]',
+          "[contenteditable='true']",
+        ];
+        let inputEl: HTMLTextAreaElement | HTMLElement | null = null;
+        for (const sel of inputSelectors) {
+          inputEl = document.querySelector(sel);
+          if (inputEl && inputEl.offsetParent !== null) break;
+        }
+        if (!inputEl) return { ok: false, error: "找不到输入框" };
+
+        inputEl.focus();
+        if (inputEl.tagName === "TEXTAREA" || (inputEl as HTMLInputElement).tagName === "INPUT") {
+          (inputEl as HTMLTextAreaElement).value = msg;
+          (inputEl as HTMLTextAreaElement).dispatchEvent(new Event("input", { bubbles: true }));
+        } else {
+          (inputEl as HTMLElement).textContent = msg;
+          (inputEl as HTMLElement).dispatchEvent(new Event("input", { bubbles: true }));
+        }
+
+        const sendSelectors = [
+          "#composer-submit-button",
+          'button[data-testid="send-button"]',
+          "button.btn.relative.btn-primary",
+          'button.mb-1.mr-1.flex.h-8.w-8.items-center.justify-center.rounded-full.bg-black',
+          'button[aria-label*="Send"]',
+          'button[type="submit"]',
+          "form button[type=submit]",
+        ];
+        let sendBtn: HTMLElement | null = null;
+        for (const sel of sendSelectors) {
+          sendBtn = document.querySelector(sel);
+          if (sendBtn && !(sendBtn as HTMLButtonElement).disabled) break;
+        }
+        if (!sendBtn) return { ok: false, error: "找不到发送按钮" };
+        (sendBtn as HTMLElement).click();
+        return { ok: true };
+      },
+      params.message
+    );
+
+    if (!sent.ok) {
+      throw new Error(`ChatGPT DOM 模拟失败: ${sent.error}`);
+    }
+
+    // 轮询等待回复完成（最多约 90 秒，降低频率减少封号风险）
+    const maxWaitMs = 90000;
+    const pollIntervalMs = 2000;
+    let lastText = "";
+    let stableCount = 0;
+    const signal = params.signal;
+
+    for (let elapsed = 0; elapsed < maxWaitMs; elapsed += pollIntervalMs) {
+      if (signal?.aborted) throw new Error("ChatGPT 请求已取消");
+
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
+
+      const result = await page.evaluate(() => {
+        const clean = (t: string) =>
+          t.replace(/[\u200B-\u200D\uFEFF]/g, "").trim();
+        const els = document.querySelectorAll(
+          'div[data-message-author-role="assistant"], .agent-turn [data-message-author-role="assistant"], [class*="markdown"], [class*="assistant"]'
+        );
+        const last = els.length > 0 ? els[els.length - 1] : null;
+        const text = last ? clean(last.textContent ?? "") : "";
+        const stopBtn = document.querySelector('button.bg-black .icon-lg, [aria-label*="Stop"]');
+        const isStreaming = !!stopBtn;
+        return { text, isStreaming };
+      });
+
+      if (result.text && result.text !== lastText) {
+        lastText = result.text;
+        stableCount = 0;
+      } else if (result.text) {
+        stableCount++;
+        if (!result.isStreaming && stableCount >= 2) {
+          break;
+        }
+      }
+    }
+
+    if (!lastText) {
+      throw new Error(
+        "ChatGPT DOM 模拟：未检测到回复。请确保 chatgpt.com 页面已打开并登录，且输入框可见。"
+      );
+    }
+
+    const fakeSse = `data: ${JSON.stringify({
+      message: { id: "dom-fallback", content: { parts: [lastText] } },
+    })}\n\ndata: [DONE]\n\n`;
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(fakeSse));
+        controller.close();
+      },
+    });
+  }
+
   async init() {
     await this.ensureBrowser();
   }
@@ -345,16 +460,19 @@ export class ChatGPTWebClientBrowser {
     );
 
     if (!responseData.ok) {
+      if (responseData.status === 403) {
+        console.log(
+          "[ChatGPT Web Browser] 403 风控，尝试 DOM 模拟 fallback（请求由真实浏览器发起，不易触发风控）"
+        );
+        return this.chatCompletionsViaDOM({
+          message: params.message,
+          signal: params.signal,
+        });
+      }
       const sentinelHint =
         responseData.sentinelError
           ? ` Sentinel: ${responseData.sentinelError}`
           : " 若持续 403，需在 chatgpt.com 控制台检查 oaistatic 脚本导出名是否变更。";
-      if (responseData.status === 403) {
-        throw new Error(
-          `ChatGPT 403 风控：${responseData.error?.slice(0, 200) || "Unusual activity"}${sentinelHint}` +
-            " 建议：关闭 VPN、降低频率、确保在同一 Chrome 登录页发起请求。"
-        );
-      }
       if (responseData.status === 401) {
         throw new Error(
           "ChatGPT 认证失败，请重新运行 ./onboard.sh 刷新 session。"
@@ -364,6 +482,8 @@ export class ChatGPTWebClientBrowser {
     }
 
     console.log(`[ChatGPT Web Browser] Response length: ${responseData.data?.length || 0} bytes`);
+    const sample = responseData.data?.slice(0, 1800) ?? "";
+    console.log(`[ChatGPT Web Browser] SSE sample:\n${sample}${(responseData.data?.length ?? 0) > 1800 ? "\n...(truncated)" : ""}`);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

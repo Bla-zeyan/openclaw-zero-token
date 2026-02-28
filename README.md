@@ -30,10 +30,9 @@ OpenClaw Zero Token is a fork of [OpenClaw](https://github.com/openclaw/openclaw
 | Kimi | ✅ **Tested** | Moonshot v1 8K, 32K, 128K |
 | Claude Web | ✅ **Tested** | claude-3-5-sonnet-20241022, claude-3-opus-20240229, claude-3-haiku-20240307 |
 | Doubao (豆包) | ✅ **Tested** | doubao-seed-2.0, doubao-pro |
-| ChatGPT Web | ⏳ Untested | GPT-4, GPT-4 Turbo |
-| Yuanbao (元宝) | ⏳ Untested | Hunyuan Pro, Hunyuan Standard |
+| ChatGPT Web | ✅ **Tested** | GPT-4, GPT-4 Turbo |
 | Gemini Web | ⏳ Untested | Gemini Pro, Gemini Ultra |
-| Grok Web | ⏳ Untested | Grok 1, Grok 2 |
+| Grok Web | ✅ **Tested** | Grok 1, Grok 2 |
 | Z Web | ⏳ Untested | GLM-4, GLM-3 Turbo |
 | Manus Web | ⏳ Untested | Manus 1 |
 | Manus API | ✅ **Tested** | Manus 1.6, Manus 1.6 Lite (API key, free tier) |

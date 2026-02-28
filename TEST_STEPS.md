@@ -50,7 +50,6 @@ ps aux | grep "chrome.*9222" | grep -v grep
 3. **Claude**: https://claude.ai
 4. **Doubao**: https://www.doubao.com/chat/
 5. **ChatGPT**: https://chatgpt.com
-6. **Yuanbao**: https://yuanbao.tencent.com/chat/na
 7. **Gemini**: https://gemini.google.com/app
 8. **Grok**: https://grok.com
 9. **Z**: https://chat.z.ai
@@ -127,8 +126,6 @@ chatgpt-web/gpt-3.5-turbo
 qwen-web/qwen-max
 qwen-web/qwen-plus
 qwen-web/qwen-turbo
-yuanbao-web/hunyuan-pro
-yuanbao-web/hunyuan-standard
 kimi-web/moonshot-v1-8k
 kimi-web/moonshot-v1-32k
 kimi-web/moonshot-v1-128k
@@ -155,10 +152,9 @@ manus-web/manus-1
 - ✅ doubao-web
 - ⏳ chatgpt-web
 - ⏳ qwen-web
-- ⏳ yuanbao-web
 - ⏳ kimi-web
 - ⏳ gemini-web
-- ⏳ grok-web
+- ✅ grok-web
 - ⏳ z-web
 - ⏳ manus-web
 

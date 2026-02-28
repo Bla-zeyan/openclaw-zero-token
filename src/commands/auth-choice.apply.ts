@@ -6,7 +6,6 @@ import { applyAuthChoiceApiProviders } from "./auth-choice.apply.api-providers.j
 import { applyAuthChoiceClaudeWeb } from "./auth-choice.apply.claude-web.js";
 import { applyAuthChoiceChatGPTWeb } from "./auth-choice.apply.chatgpt-web.js";
 import { applyAuthChoiceQwenWeb } from "./auth-choice.apply.qwen-web.js";
-import { applyAuthChoiceYuanbaoWeb } from "./auth-choice.apply.yuanbao-web.js";
 import { applyAuthChoiceKimiWeb } from "./auth-choice.apply.kimi-web.js";
 import { applyAuthChoiceGeminiWeb } from "./auth-choice.apply.gemini-web.js";
 import { applyAuthChoiceGrokWeb } from "./auth-choice.apply.grok-web.js";
@@ -48,7 +47,6 @@ export type ApplyAuthChoiceParams = {
     doubaoWebCookie?: string;
     chatgptWebCookie?: string;
     qwenWebCookie?: string;
-    yuanbaoWebCookie?: string;
     kimiWebCookie?: string;
     geminiWebCookie?: string;
     grokWebCookie?: string;
@@ -83,7 +81,6 @@ export async function applyAuthChoice(
     applyAuthChoiceClaudeWeb,
     applyAuthChoiceChatGPTWeb,
     applyAuthChoiceQwenWeb,
-    applyAuthChoiceYuanbaoWeb,
     applyAuthChoiceKimiWeb,
     applyAuthChoiceGeminiWeb,
     applyAuthChoiceGrokWeb,

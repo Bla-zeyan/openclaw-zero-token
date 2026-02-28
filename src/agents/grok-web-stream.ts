@@ -10,6 +10,7 @@ import {
 } from "../providers/grok-web-client-browser.js";
 
 const conversationMap = new Map<string, string>();
+const parentResponseMap = new Map<string, string>();
 
 export function createGrokWebStreamFn(cookieOrJson: string): StreamFn {
   let options: GrokWebClientOptions;
@@ -50,12 +51,15 @@ export function createGrokWebStreamFn(cookieOrJson: string): StreamFn {
           throw new Error("No message found to send to Grok API");
         }
 
+        const parentResponseId = parentResponseMap.get(sessionKey);
+
         console.log(`[GrokWebStream] Starting run for session: ${sessionKey}`);
         console.log(`[GrokWebStream] Conversation ID: ${conversationId || "new"}`);
         console.log(`[GrokWebStream] Prompt length: ${prompt.length}`);
 
         const responseStream = await client.chatCompletions({
           conversationId,
+          parentResponseId,
           message: prompt,
           model: model.id,
           signal: streamOptions?.signal,
@@ -92,25 +96,41 @@ export function createGrokWebStreamFn(cookieOrJson: string): StreamFn {
         });
 
         const processLine = (line: string) => {
-          if (!line || !line.startsWith("data:")) {
-            return;
-          }
+          if (!line || !line.trim()) return;
 
-          const dataStr = line.slice(5).trim();
-          if (dataStr === "[DONE]" || !dataStr) {
-            return;
+          let dataStr = line.trim();
+          if (line.startsWith("data:")) {
+            dataStr = line.slice(5).trim();
           }
+          if (dataStr === "[DONE]" || !dataStr) return;
 
           try {
             const data = JSON.parse(dataStr);
 
-            // Extract conversation ID
-            if (data.conversation_id) {
-              conversationMap.set(sessionKey, data.conversation_id);
+            const res = data.result ?? data;
+
+            if (client.lastConversationId) {
+              conversationMap.set(sessionKey, client.lastConversationId);
+            }
+            if (res?.responseId) {
+              parentResponseMap.set(sessionKey, res.responseId);
             }
 
-            // Extract content delta
-            const delta = data.text || data.content || data.delta;
+            if (res?.userResponse?.sender === "human") return;
+
+            let delta =
+              res?.contentDelta ??
+              res?.textDelta ??
+              res?.content ??
+              res?.text ??
+              res?.markdown ??
+              res?.accumulatedMarkdown ??
+              data.text ??
+              data.content ??
+              data.delta ??
+              data.choices?.[0]?.delta?.content;
+            if (typeof res?.assistantResponse === "string") delta ??= res.assistantResponse;
+            if (typeof res?.assistantMessage === "string") delta ??= res.assistantMessage;
             if (typeof delta === "string" && delta) {
               if (contentParts.length === 0) {
                 contentParts[contentIndex] = { type: "text", text: "" };

@@ -53,7 +53,6 @@ export type AuthChoice =
   | "claude-web"
   | "chatgpt-web"
   | "qwen-web"
-  | "yuanbao-web"
   | "kimi-web"
   | "gemini-web"
   | "grok-web"
@@ -93,7 +92,6 @@ export type AuthChoiceGroupId =
   | "claude-web"
   | "chatgpt-web"
   | "qwen-web"
-  | "yuanbao-web"
   | "kimi-web"
   | "gemini-web"
   | "grok-web"
@@ -155,7 +153,6 @@ export type OnboardOptions = {
   doubaoWebCookie?: string;
   chatgptWebCookie?: string;
   qwenWebCookie?: string;
-  yuanbaoWebCookie?: string;
   kimiWebCookie?: string;
   geminiWebCookie?: string;
   grokWebCookie?: string;
