@@ -75,6 +75,9 @@ apps/ios/*.mobileprovision
 # Test scripts and folder (local use, not for distribution)
 test/
 
+# Docs research/analysis (internal use, not for distribution)
+docs/research/
+
 # Local untracked files
 .local/
 .openclaw-state/
