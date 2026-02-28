@@ -36,7 +36,7 @@ OpenClaw Zero Token is a fork of [OpenClaw](https://github.com/openclaw/openclaw
 | Grok Web | ⏳ Untested | Grok 1, Grok 2 |
 | Z Web | ⏳ Untested | GLM-4, GLM-3 Turbo |
 | Manus Web | ⏳ Untested | Manus 1 |
-| Manus API | ⏳ Untested | Manus 1.6, Manus 1.6 Lite (API key, free tier) |
+| Manus API | ✅ **Tested** | Manus 1.6, Manus 1.6 Lite (API key, free tier) |
 
 > **Note:** All web-based providers use browser automation (Playwright) for authentication and API access. Platforms marked **Tested** have been verified to work.
 
@@ -230,7 +230,7 @@ See **INSTALLATION.md** and **START_HERE.md** for full setup and troubleshooting
 ## Roadmap
 
 ### Current Focus
-- ✅ DeepSeek Web, Qwen, Kimi, Claude Web, Doubao — all **tested and working**
+- ✅ DeepSeek Web, Qwen, Kimi, Claude Web, Doubao, Manus API — all **tested and working**
 - 🔧 Improving credential capture reliability
 - 📝 Documentation improvements
 

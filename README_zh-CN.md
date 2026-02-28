@@ -36,7 +36,7 @@ OpenClaw Zero Token 是 [OpenClaw](https://github.com/openclaw/openclaw) 的分�
 | Grok Web | ⏳ **未测试** | Grok 1, Grok 2 |
 | Z Web | ⏳ **未测试** | GLM-4, GLM-3 Turbo |
 | Manus Web | ⏳ **未测试** | Manus 1 |
-| Manus API | ⏳ **未测试** | Manus 1.6, Manus 1.6 Lite（API key，免费额度） |
+| Manus API | ✅ **已测试** | Manus 1.6, Manus 1.6 Lite（API key，免费额度） |
 
 > **注意：** 所有基于浏览器的提供商都使用浏览器自动化（Playwright）进行认证和 API 访问。标记为 **已测试** 的平台已通过实际使用验证。
 
@@ -488,7 +488,7 @@ node dist/index.mjs doctor
 ## 开发路线
 
 ### 当前重点
-- ✅ DeepSeek Web、千问(Qwen)、Kimi、Claude Web、豆包(Doubao) — **均已测试通过**
+- ✅ DeepSeek Web、千问、Kimi、Claude Web、豆包、Manus API — **均已测试通过**
 - 🔧 提高凭证捕获可靠性
 - 📝 文档改进
 

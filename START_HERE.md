@@ -47,7 +47,9 @@ npm run build
 ## 📋 需要登录的平台
 
 **步骤 3**（不含 DeepSeek）：千问、Kimi、Claude、Doubao、ChatGPT 等  
-**步骤 5**（仅 DeepSeek）：https://chat.deepseek.com
+**步骤 5**（仅 DeepSeek）：https://chat.deepseek.com  
+
+**Manus API**（已测试）：在 onboard 中配置 API Key，无需浏览器登录
 
 ---
 
@@ -55,8 +57,8 @@ npm run build
 
 | 平台 | 状态 |
 |------|------|
-| DeepSeek、千问(Qwen)、Kimi | ✅ 已测试可用 |
-| Claude、ChatGPT、Doubao、Yuanbao、Gemini、Grok、Z、Manus | 未测试 |
+| DeepSeek、千问、Kimi、Claude Web、豆包、Manus API | ✅ 已测试可用 |
+| ChatGPT、Yuanbao、Gemini、Grok、Z、Manus Web | 未测试 |
 
 ---
 
@@ -129,8 +131,8 @@ Then visit: http://127.0.0.1:3001/#token=62b791625fa441be036acd3c206b7e14e2bb13c
 
 | Platform | Status |
 |----------|--------|
-| DeepSeek, Qwen, Kimi | ✅ Tested |
-| Claude, ChatGPT, Doubao, Yuanbao, Gemini, Grok, Z, Manus | Untested |
+| DeepSeek, Qwen, Kimi, Claude Web, Doubao, Manus API | ✅ Tested |
+| ChatGPT, Yuanbao, Gemini, Grok, Z, Manus Web | Untested |
 
 #### Expected Results
 
