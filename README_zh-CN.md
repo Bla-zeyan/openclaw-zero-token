@@ -607,3 +607,59 @@ git merge upstream/main
 ## 免责声明
 
 本项目仅供学习和研究使用。使用本项目访问任何第三方服务时，请确保遵守该服务的使用条款。开发者不对因使用本项目而产生的任何问题负责。
+
+---
+
+## 核心代码结构
+
+> 本节内容由 CLAUDE.md 提供，供开发者参考。
+
+### 核心代码位置
+
+```
+src/
+├── index.ts                    # 项目入口，CLI 程序入口
+├── cli/
+│   └── program/                # CLI 命令定义
+│       ├── build-program.ts    # CLI 程序构建
+│       └── command-registry.ts # 命令注册
+├── gateway/                    # HTTP 网关核心
+│   ├── index.ts               # Gateway 入口
+│   └── server.ts              # Express 服务器
+├── providers/                 # AI 平台 Provider（核心业务逻辑）
+│   ├── deepseek-web/          # DeepSeek Web 实现
+│   │   ├── auth.ts            # 认证/凭证捕获
+│   │   └── client.ts          # API 客户端
+│   ├── doubao-web/            # 豆包 Web 实现
+│   ├── claude-web/            # Claude Web 实现
+│   └── qwen-web/              # 千问 Web 实现
+├── agents/                    # AI 代理核心（流式响应处理）
+├── channels/                  # 消息通讯渠道
+└── browser/                   # Playwright 浏览器自动化
+```
+
+### 常用命令
+
+```bash
+# 首次配置（6 步流程）
+pnpm install              # 安装依赖
+pnpm build               # 编译项目
+./start-chrome-debug.sh  # 启动 Chrome 调试模式
+./onboard.sh             # 配置认证（捕获凭证）
+./server.sh start        # 启动 Gateway
+
+# 日常使用
+./server.sh start|stop|status  # 管理 Gateway
+pnpm dev                       # 开发模式运行
+pnpm tui                       # 终端 UI
+pnpm check                     # Lint + format + type-check
+pnpm test                      # 单元测试
+```
+
+### 开发指南
+
+- **防冗余规则**: 始终重用现有代码，避免重复。创建新工具前先搜索现有实现。
+- **格式化**: 使用 `src/infra/format-time` 处理时间格式化，使用 `src/terminal/table.ts` 输出表格
+- **导入约定**: ESM 跨包导入使用 `.js` 后缀
+- **Provider 实现**: 各 AI 平台在 `src/providers/` 下遵循类似的认证和请求处理模式
+- **认证捕获**: 通过 Playwright CDP 监听网络请求，拦截 Authorization Header
